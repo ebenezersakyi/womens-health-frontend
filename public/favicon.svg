@@ -1,0 +1,6 @@
+<!-- This is a favicon placeholder. For production, replace with proper favicon files -->
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="32" height="32" rx="6" fill="#EC4899"/>
+  <path d="M16 8c-4.5 0-8 2.5-8 6 0 4.5 8 14 8 14s8-9.5 8-14c0-3.5-3.5-6-8-6z" fill="white"/>
+  <circle cx="16" cy="14" r="2" fill="#EC4899"/>
+</svg>
