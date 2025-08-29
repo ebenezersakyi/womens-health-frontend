@@ -290,8 +290,8 @@ export default function HeroSection() {
                 className="text-base lg:text-lg text-gray-600 max-w-xl leading-relaxed"
                 variants={itemVariants}
               >
-                "Taking care of your health today creates a foundation for a
-                healthier tomorrow."
+                &quot;Taking care of your health today creates a foundation for a
+                healthier tomorrow.&quot;
               </motion.p>
             </motion.div>
 

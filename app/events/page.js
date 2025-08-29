@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Calendar, MapPin, Filter, Search, AlertCircle, List, Clock, X, Navigation } from 'lucide-react'
 import { useJsApiLoader } from '@react-google-maps/api'
@@ -18,7 +18,7 @@ import GoogleMapComponent from '../../components/GoogleMapComponent'
 let autocomplete;
 let service;
 
-export default function EventsPage() {
+function EventsPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [searchValue, setSearchValue] = useState('')
@@ -978,4 +978,19 @@ function getMockEvents() {
       distance: 25000 // in meters (25km)
     }
   ]
+}
+
+export default function EventsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-pink-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading events...</p>
+        </div>
+      </div>
+    }>
+      <EventsPageContent />
+    </Suspense>
+  )
 }

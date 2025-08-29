@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useParams } from "next/navigation";
 import {
@@ -27,13 +27,7 @@ export default function EventDetailPage() {
   const router = useRouter();
   const params = useParams();
 
-  useEffect(() => {
-    if (params.id) {
-      fetchEvent();
-    }
-  }, [params.id]);
-
-  const fetchEvent = async () => {
+  const fetchEvent = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -57,7 +51,13 @@ export default function EventDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [params.id]);
+
+  useEffect(() => {
+    if (params.id) {
+      fetchEvent();
+    }
+  }, [params.id, fetchEvent]);
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {

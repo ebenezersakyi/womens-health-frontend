@@ -104,7 +104,7 @@ export default function StatsSection() {
               Take Action Today
             </h3>
             <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
-              Don't wait for symptoms to appear. Regular screening is your best defense 
+              Don&apos;t wait for symptoms to appear. Regular screening is your best defense 
               against breast cancer. Find a screening center near you and schedule your appointment.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">

@@ -292,7 +292,7 @@ export default function ProfilePage() {
                     <Calendar className="h-5 w-5 text-gray-400" />
                     <div>
                       <div className="font-medium text-gray-900">Event Reminders</div>
-                      <div className="text-sm text-gray-600">Get reminded about upcoming events you've saved</div>
+                      <div className="text-sm text-gray-600">Get reminded about upcoming events you&apos;ve saved</div>
                     </div>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">

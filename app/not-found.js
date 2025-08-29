@@ -27,8 +27,8 @@ export default function NotFound() {
         </h1>
         
         <p className="text-gray-600 mb-8 leading-relaxed">
-          Oops! The page you're looking for seems to have wandered off. 
-          Let's get you back on track to finding the healthcare resources you need.
+          Oops! The page you&apos;re looking for seems to have wandered off. 
+          Let&apos;s get you back on track to finding the healthcare resources you need.
         </p>
 
         {/* Actions */}

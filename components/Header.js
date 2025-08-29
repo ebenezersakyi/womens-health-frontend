@@ -218,7 +218,7 @@ export default function Header() {
             <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
               <div className="text-center">
                 <p className="text-xs text-gray-500 mb-2">
-                  Supporting Women's Health
+                  Supporting Women&apos;s Health
                 </p>
                 <div className="flex justify-center items-center gap-2">
                   <Heart className="h-3 w-3 text-pink-500" />
