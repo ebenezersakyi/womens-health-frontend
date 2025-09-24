@@ -4,21 +4,15 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   Heart,
-  Search,
   Calendar,
+  Activity,
+  ArrowRight,
+  BookOpen,
+  Search,
   MapPin,
-  Shield,
-  Clock,
-  Navigation,
 } from "lucide-react";
 import { useJsApiLoader } from "@react-google-maps/api";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  DateRangePicker,
-  Calendar as DateRangeCalendar,
-} from "react-date-range";
-import "react-date-range/dist/styles.css"; // main css file
-import "react-date-range/dist/theme/default.css"; // theme css file
+import { useStore } from "../lib/store";
 
 // Google Places integration
 let autocomplete;
@@ -26,19 +20,9 @@ let service;
 
 export default function HeroSection() {
   const router = useRouter();
+  const { isAuthenticated, user } = useStore();
   const [searchValue, setSearchValue] = useState("");
   const [selectedPlace, setSelectedPlace] = useState(null);
-  const [isRangeMode, setIsRangeMode] = useState(false);
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [dateRange, setDateRange] = useState([
-    {
-      startDate: new Date(),
-      endDate: new Date(),
-      key: "selection",
-    },
-  ]);
-  const [singleDate, setSingleDate] = useState(new Date());
-  const autocompleteRef = useRef(null);
   const inputRef = useRef(null);
 
   // Load Google Maps API with Places library
@@ -50,41 +34,46 @@ export default function HeroSection() {
 
   useEffect(() => {
     // Initialize Google Places Autocomplete when API is loaded
-    if (isLoaded && inputRef.current) {
-      autocomplete = new window.google.maps.places.Autocomplete(
-        inputRef.current,
-        {
-          types: ["establishment", "geocode"],
-          fields: [
-            "place_id",
-            "geometry",
-            "name",
-            "formatted_address",
-            "types",
-          ],
-        }
-      );
+    if (isLoaded && inputRef.current && !autocomplete) {
+      try {
+        autocomplete = new window.google.maps.places.Autocomplete(
+          inputRef.current,
+          {
+            types: ["(cities)"],
+            componentRestrictions: { country: "gh" }, // Ghana
+            fields: [
+              "place_id",
+              "geometry",
+              "name",
+              "formatted_address",
+              "types",
+            ],
+          }
+        );
 
-      service = new window.google.maps.places.PlacesService(
-        document.createElement("div")
-      );
+        service = new window.google.maps.places.PlacesService(
+          document.createElement("div")
+        );
 
-      autocomplete.addListener("place_changed", () => {
-        const place = autocomplete.getPlace();
-        if (place.geometry) {
-          setSearchValue(place.formatted_address || place.name);
-          // Store the selected place with coordinates
-          setSelectedPlace({
-            name: place.formatted_address || place.name,
-            coordinates: {
-              lat: place.geometry.location.lat(),
-              lng: place.geometry.location.lng()
-            },
-            place_id: place.place_id
-          });
-          console.log("Selected place:", place);
-        }
-      });
+        autocomplete.addListener("place_changed", () => {
+          const place = autocomplete.getPlace();
+          if (place.geometry) {
+            setSearchValue(place.formatted_address || place.name);
+            // Store the selected place with coordinates
+            setSelectedPlace({
+              name: place.formatted_address || place.name,
+              coordinates: {
+                lat: place.geometry.location.lat(),
+                lng: place.geometry.location.lng()
+              },
+              place_id: place.place_id
+            });
+            console.log("Selected place:", place);
+          }
+        });
+      } catch (error) {
+        console.error("Error initializing Google Places:", error);
+      }
     }
   }, [isLoaded]);
 
@@ -104,22 +93,6 @@ export default function HeroSection() {
     searchParams.append("lng", coordinates.lng.toString());
     searchParams.append("radius", "25000"); // 25km default radius in meters
 
-    if (isRangeMode) {
-      // Date range mode
-      const { startDate, endDate } = dateRange[0];
-      if (startDate) {
-        searchParams.append("startDate", startDate.toISOString());
-      }
-      if (endDate && endDate !== startDate) {
-        searchParams.append("endDate", endDate.toISOString());
-      }
-    } else {
-      // Single date mode
-      if (singleDate) {
-        searchParams.append("date", singleDate.toISOString());
-      }
-    }
-
     const queryString = searchParams.toString();
     const url = `/events?${queryString}`;
     router.push(url);
@@ -131,413 +104,126 @@ export default function HeroSection() {
     }
   };
 
-  // Close date picker when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (
-        showDatePicker &&
-        !event.target.closest(".react-datepicker-wrapper") &&
-        !event.target.closest("button")
-      ) {
-        setShowDatePicker(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [showDatePicker]);
-
-  // Animation variants for smoother animations
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        duration: 0.6,
-        ease: "easeOut",
-        staggerChildren: 0.1,
-        delayChildren: 0.2,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: {
-      opacity: 0,
-      y: 30,
-      scale: 0.95,
-    },
-    visible: {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      transition: {
-        duration: 0.8,
-        ease: [0.25, 0.46, 0.45, 0.94], // Custom cubic-bezier for smoothness
-        type: "spring",
-        stiffness: 100,
-        damping: 15,
-      },
-    },
-  };
-
-  const heartVariants = {
-    hidden: {
-      scale: 0,
-      rotate: -180,
-      opacity: 0,
-    },
-    visible: {
-      scale: 1,
-      rotate: 0,
-      opacity: 1,
-      transition: {
-        duration: 1.2,
-        ease: [0.34, 1.56, 0.64, 1], // Bouncy easing
-        type: "spring",
-        stiffness: 120,
-        damping: 12,
-      },
-    },
-    hover: {
-      scale: 1.1,
-      transition: {
-        duration: 0.3,
-        ease: "easeInOut",
-        yoyo: Infinity,
-      },
-    },
-  };
-
-  const featureVariants = {
-    hidden: {
-      opacity: 0,
-      y: 20,
-      scale: 0.9,
-    },
-    visible: {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      transition: {
-        duration: 0.6,
-        ease: [0.25, 0.46, 0.45, 0.94],
-        type: "spring",
-        stiffness: 120,
-        damping: 20,
-      },
-    },
-    hover: {
-      scale: 1.03,
-      y: -2,
-      boxShadow: "0 8px 25px rgba(0, 0, 0, 0.1)",
-      transition: {
-        duration: 0.2,
-        ease: "easeOut",
-      },
-    },
-  };
-
   return (
-    <section className="relative overflow-hidden bg-white h-[90vh]">
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center">
-        <motion.div
-          className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center w-full py-8"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          {/* Left content */}
-          <div className="space-y-6 lg:space-y-8">
-            <motion.div
-              className="space-y-4 lg:space-y-6"
-              variants={itemVariants}
-            >
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
-                <motion.span className="font-light" variants={itemVariants}>
-                  When your
-                </motion.span>{" "}
-                <span className="relative">
-                  <motion.div
-                    variants={heartVariants}
-                    whileHover="hover"
-                    className="inline-block"
-                  >
-                    <Heart
-                      className="inline w-8 h-8 lg:w-10 lg:h-10 text-pink-500 mx-1"
-                      fill="currentColor"
-                    />
-                  </motion.div>
+    <section className="relative bg-gradient-to-br from-pink-50 via-white to-purple-50 h-[calc(100vh-4rem)] flex items-center overflow-hidden">
+      {/* Background decorative elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-pink-300/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-300/15 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-1/3 left-1/4 w-32 h-32 bg-blue-300/15 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '4s' }}></div>
+        <div className="absolute top-1/2 right-1/3 w-24 h-24 bg-pink-200/25 rounded-full blur-xl animate-pulse" style={{ animationDelay: '6s' }}></div>
+        <div className="absolute bottom-1/4 left-1/2 w-16 h-16 bg-purple-200/20 rounded-full blur-lg animate-pulse" style={{ animationDelay: '8s' }}></div>
+      </div>
+      
+      {/* Animated gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-pink-50/50 via-transparent to-purple-50/50 animate-pulse pointer-events-none" style={{ animationDelay: '1s', animationDuration: '8s' }}></div>
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full h-full relative z-10">
+        <div className="grid lg:grid-cols-2 gap-12 items-center h-full">
+          {/* Left Content */}
+          <div className="flex flex-col justify-center h-full space-y-8">
+            {/* Main Headline */}
+            <div className="space-y-6">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 leading-[1.1]">
+                Your Health,{" "}
+                <span className="text-pink-600 relative bg-gradient-to-r from-pink-600 to-pink-500 bg-clip-text text-transparent">
+                  Your Priority
+                  <Heart className="inline-block w-8 h-8 lg:w-10 lg:h-10 text-pink-500 ml-2 animate-pulse" fill="currentColor" />
                 </span>
-                <br />
-                <motion.span
-                  className="text-gray-700 font-black"
-                  variants={itemVariants}
-                >
-                  Health Screening
-                </motion.span>{" "}
-                <motion.span
-                  className="text-pink-500 font-black"
-                  variants={itemVariants}
-                >
-                  comes first
-                </motion.span>
               </h1>
+              
+              <p className="text-lg lg:text-xl text-gray-600 leading-relaxed max-w-lg">
+                Empowering women with personalized health tracking, expert guidance, and early detection tools for a healthier tomorrow.
+              </p>
+            </div>
 
-              <motion.p
-                className="text-base lg:text-lg text-gray-600 max-w-xl leading-relaxed"
-                variants={itemVariants}
-              >
-                &quot;Taking care of your health today creates a foundation for a
-                healthier tomorrow.&quot;
-              </motion.p>
-            </motion.div>
-
-            {/* Search input with Google Places */}
-            <motion.div
-              className="relative max-w-lg w-full"
-              variants={itemVariants}
-              whileHover={{ scale: 1.01 }}
-              transition={{ duration: 0.2 }}
-            >
+            {/* Google Places Search */}
+            <div className="relative max-w-lg w-full group">
+              <div className="absolute inset-0 bg-gradient-to-r from-pink-500 to-purple-500 rounded-2xl blur opacity-20 group-hover:opacity-30 group-focus-within:opacity-40 transition-opacity duration-300"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-pink-100 to-purple-100 rounded-2xl opacity-0 group-focus-within:opacity-50 transition-opacity duration-300"></div>
               <input
                 ref={inputRef}
                 type="text"
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Search place..."
-                className="w-full pl-6 pr-20 py-4 rounded-2xl border border-gray-100 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 text-gray-700 placeholder-gray-400 bg-white shadow-sm transition-all duration-300"
+                placeholder="Search for locations near you to see events..."
+                className="relative w-full pl-6 pr-16 py-4 rounded-2xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 text-gray-700 placeholder-gray-400 bg-white/90 backdrop-blur-sm shadow-lg hover:shadow-xl text-base transition-all duration-300 focus:bg-white focus:shadow-2xl"
               />
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-3">
-                <div className="relative">
-                  <motion.button
-                    onClick={() => setShowDatePicker(!showDatePicker)}
-                    className="p-1 hover:bg-gray-100 rounded-md transition-colors duration-200"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    transition={{ duration: 0.1 }}
+              <button
+                onClick={handleSearch}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 bg-gradient-to-r from-pink-600 to-pink-500 hover:from-pink-700 hover:to-pink-600 text-white rounded-xl transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105 focus:outline-none focus:ring-2 focus:ring-pink-500/50"
+              >
+                <Search className="w-5 h-5" />
+              </button>
+              <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-0 h-0.5 bg-gradient-to-r from-pink-500 to-purple-500 group-hover:w-full group-focus-within:w-full transition-all duration-500"></div>
+            </div>
+
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4">
+              {!isAuthenticated ? (
+                <>
+                  <button
+                    onClick={() => router.push("/auth/register")}
+                    className="group relative flex items-center justify-center gap-2 bg-gradient-to-r from-pink-600 to-pink-500 text-white px-8 py-4 rounded-2xl text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 overflow-hidden"
                   >
-                    <Calendar className="w-5 h-5 text-pink-500" />
-                  </motion.button>
-                  <AnimatePresence>
-                    {showDatePicker && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.9, y: -10 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.9, y: -10 }}
-                        transition={{
-                          duration: 0.3,
-                          ease: [0.25, 0.46, 0.45, 0.94],
-                          type: "spring",
-                          stiffness: 200,
-                          damping: 20,
-                        }}
-                        className="absolute right-0 top-8 z-50"
-                      >
-                        <div className="bg-white rounded-lg shadow-lg border p-2">
-                          {/* Date mode toggle */}
-                          <div className="flex items-center justify-between mb-2 pb-2 border-b border-gray-100">
-                            <span className="text-xs font-medium text-gray-700">
-                              Date Selection
-                            </span>
-                            <div className="flex items-center space-x-1">
-                              <button
-                                onClick={() => {
-                                  setIsRangeMode(false);
-                                  setSingleDate(new Date());
-                                }}
-                                className={`px-2 py-1 text-xs rounded-md transition-colors ${
-                                  !isRangeMode
-                                    ? "bg-pink-500 text-white"
-                                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                                }`}
-                              >
-                                Single
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setIsRangeMode(true);
-                                  setDateRange([
-                                    {
-                                      startDate: new Date(),
-                                      endDate: new Date(),
-                                      key: "selection",
-                                    },
-                                  ]);
-                                }}
-                                className={`px-2 py-1 text-xs rounded-md transition-colors ${
-                                  isRangeMode
-                                    ? "bg-pink-500 text-white"
-                                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                                }`}
-                              >
-                                Range
-                              </button>
-                            </div>
-                          </div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-pink-700 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <span className="relative">Get Started Free</span>
+                    <ArrowRight className="w-5 h-5 relative group-hover:translate-x-1 transition-transform duration-300" />
+                  </button>
+                  <button
+                    onClick={() => router.push("/self-exam-guide")}
+                    className="group relative flex items-center justify-center gap-2 border-2 border-pink-600 text-pink-600 px-8 py-4 rounded-2xl text-lg font-semibold hover:text-white transition-all duration-300 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl hover:scale-105 overflow-hidden"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-pink-600 to-pink-500 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
+                    <BookOpen className="w-5 h-5 relative" />
+                    <span className="relative">Self-Exam Guide</span>
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => router.push("/symptoms/log")}
+                    className="group relative flex items-center justify-center gap-2 bg-gradient-to-r from-pink-600 to-pink-500 text-white px-8 py-4 rounded-2xl text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 overflow-hidden"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-pink-700 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <Activity className="w-5 h-5 relative" />
+                    <span className="relative">Log Symptoms</span>
+                  </button>
+                  <button
+                    onClick={() => router.push("/appointments")}
+                    className="group relative flex items-center justify-center gap-2 border-2 border-pink-600 text-pink-600 px-8 py-4 rounded-2xl text-lg font-semibold hover:text-white transition-all duration-300 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl hover:scale-105 overflow-hidden"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-pink-600 to-pink-500 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
+                    <Calendar className="w-5 h-5 relative" />
+                    <span className="relative">Book Appointment</span>
+                  </button>
+                </>
+              )}
+            </div>
 
-                          {/* Date Picker */}
-                          <div className="react-daterange-picker-wrapper-compact">
-                            {isRangeMode ? (
-                              <DateRangePicker
-                                ranges={dateRange}
-                                onChange={(ranges) => {
-                                  setDateRange([ranges.selection]);
-                                  // Close when both dates are selected and different
-                                  if (
-                                    ranges.selection.startDate &&
-                                    ranges.selection.endDate &&
-                                    ranges.selection.startDate.getTime() !==
-                                      ranges.selection.endDate.getTime()
-                                  ) {
-                                    setTimeout(
-                                      () => setShowDatePicker(false),
-                                      300
-                                    );
-                                  }
-                                }}
-                                showSelectionPreview={true}
-                                moveRangeOnFirstSelection={false}
-                                months={1}
-                                direction="horizontal"
-                                staticRanges={[]}
-                                inputRanges={[]}
-                                showDateDisplay={false}
-                              />
-                            ) : (
-                              <DateRangeCalendar
-                                date={singleDate}
-                                onChange={(date) => {
-                                  setSingleDate(date);
-                                  setTimeout(
-                                    () => setShowDatePicker(false),
-                                    200
-                                  );
-                                }}
-                                showDateDisplay={false}
-                              />
-                            )}
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-                <motion.button
-                  onClick={handleSearch}
-                  className="p-3 bg-pink-500 hover:bg-pink-600 text-white rounded-xl font-medium flex items-center justify-center transition-colors duration-200"
-                  whileHover={{
-                    scale: 1.05,
-                    boxShadow: "0 10px 25px rgba(236, 72, 153, 0.3)",
-                  }}
-                  whileTap={{ scale: 0.95 }}
-                  transition={{ duration: 0.1 }}
-                >
-                  <Search className="w-5 h-5" />
-                </motion.button>
-              </div>
-            </motion.div>
-
-            {/* Service features */}
-            <motion.div
-              className="grid grid-cols-2 gap-3 pt-2 max-w-lg w-full"
-              variants={itemVariants}
-            >
-              <motion.div
-                className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl border border-gray-100"
-                variants={featureVariants}
-                whileHover="hover"
-              >
-                <div className="w-10 h-10 bg-pink-100 rounded-xl flex items-center justify-center">
-                  <Calendar className="w-5 h-5 text-pink-500" />
-                </div>
-                <div>
-                  <span className="text-sm font-semibold text-gray-800 block">
-                    Easy Booking
-                  </span>
-                  <span className="text-xs text-gray-500">
-                    Quick scheduling
-                  </span>
-                </div>
-              </motion.div>
-
-              <motion.div
-                className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl border border-gray-100"
-                variants={featureVariants}
-                whileHover="hover"
-              >
-                <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
-                  <MapPin className="w-5 h-5 text-purple-500" />
-                </div>
-                <div>
-                  <span className="text-sm font-semibold text-gray-800 block">
-                    Find Centers
-                  </span>
-                  <span className="text-xs text-gray-500">
-                    Nearby locations
-                  </span>
-                </div>
-              </motion.div>
-
-              <motion.div
-                className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl border border-gray-100"
-                variants={featureVariants}
-                whileHover="hover"
-              >
-                <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-                  <Clock className="w-5 h-5 text-blue-500" />
-                </div>
-                <div>
-                  <span className="text-sm font-semibold text-gray-800 block">
-                    Scheduling
-                  </span>
-                  <span className="text-xs text-gray-500">
-                    Appointment times
-                  </span>
-                </div>
-              </motion.div>
-
-              <motion.div
-                className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl border border-gray-100"
-                variants={featureVariants}
-                whileHover="hover"
-              >
-                <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
-                  <Navigation className="w-5 h-5 text-green-500" />
-                </div>
-                <div>
-                  <span className="text-sm font-semibold text-gray-800 block">
-                    Directions
-                  </span>
-                  <span className="text-xs text-gray-500">
-                    Location guidance
-                  </span>
-                </div>
-              </motion.div>
-            </motion.div>
           </div>
 
-          {/* Right content - Hero Image */}
-          <motion.div
-            className="relative h-full flex items-stretch"
-            variants={itemVariants}
-          >
-            <motion.div
-              className="relative w-full h-full"
-              whileHover={{ scale: 1.02 }}
-              transition={{ duration: 0.3 }}
-            >
+          {/* Right Content - Hero Image */}
+          <div className="relative flex items-center justify-center h-full overflow-hidden">
+            <div className="relative w-full max-w-sm lg:max-w-md xl:max-w-lg h-full flex items-center justify-center">
+              {/* Subtle glow effect behind image */}
+              <div className="absolute inset-0 bg-gradient-to-r from-pink-200/20 to-purple-200/20 rounded-full blur-3xl scale-110 animate-pulse"></div>
+              
               <img
                 src="/images/hero/hero1.png"
-                alt="Health screening consultation"
-                className="w-full h-full object-cover object-center"
+                alt="Women's health consultation"
+                className="relative w-full h-auto max-h-full object-contain hover:scale-105 transition-transform duration-700 ease-out"
               />
-            </motion.div>
-          </motion.div>
-        </motion.div>
+              
+              {/* Floating elements around the image */}
+              <div className="absolute -top-8 -right-8 w-4 h-4 bg-pink-400 rounded-full animate-bounce opacity-60" style={{ animationDelay: '0s' }}></div>
+              <div className="absolute -bottom-12 -left-8 w-3 h-3 bg-purple-400 rounded-full animate-bounce opacity-50" style={{ animationDelay: '1s' }}></div>
+              <div className="absolute top-1/4 -right-12 w-2 h-2 bg-blue-400 rounded-full animate-bounce opacity-40" style={{ animationDelay: '2s' }}></div>
+              <div className="absolute bottom-1/3 -left-6 w-3 h-3 bg-pink-300 rounded-full animate-bounce opacity-30" style={{ animationDelay: '3s' }}></div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );

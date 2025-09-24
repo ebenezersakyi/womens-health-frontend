@@ -4,404 +4,475 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { 
   User, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Bell, 
+  Heart, 
   Shield, 
+  Settings, 
+  Bell,
+  Edit3,
   LogOut,
-  Edit2,
-  Save,
-  X,
   Calendar,
-  Heart
+  Activity,
+  TrendingUp,
+  Phone,
+  Mail,
+  MapPin,
+  Users,
+  AlertTriangle,
+  ChevronRight
 } from 'lucide-react'
 import { apiService } from '../../lib/api'
 import { useStore } from '../../lib/store'
 import LoadingSpinner from '../../components/LoadingSpinner'
 
 export default function ProfilePage() {
-  const [user, setUser] = useState(null)
+  const [healthProfile, setHealthProfile] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [editing, setEditing] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState(null)
-  const [editForm, setEditForm] = useState({})
-  const [notifications, setNotifications] = useState({
-    newEvents: true,
-    eventReminders: true,
-    healthTips: false
+  const [stats, setStats] = useState({
+    symptomsLogged: 0,
+    appointmentsBooked: 0,
+    remindersActive: 0,
+    lastScreening: null
   })
+
   const router = useRouter()
-  const { setUser: setStoreUser } = useStore()
+  const { 
+    user, 
+    isAuthenticated, 
+    logout,
+    symptoms,
+    appointments,
+    reminders
+  } = useStore()
 
   useEffect(() => {
-    fetchProfile()
-  }, [])
+    if (!isAuthenticated) {
+      router.push('/auth/login')
+      return
+    }
+    fetchProfileData()
+  }, [isAuthenticated, router])
 
-  const fetchProfile = async () => {
+  const fetchProfileData = async () => {
     try {
       setLoading(true)
-      setError(null)
       
-      const response = await apiService.getProfile()
-      const userData = response.data || getMockUser()
-      setUser(userData)
-      setEditForm(userData)
-      setStoreUser(userData)
-      
-      // Load notification preferences from localStorage
-      const savedNotifications = localStorage.getItem('notificationPreferences')
-      if (savedNotifications) {
-        setNotifications(JSON.parse(savedNotifications))
+      // Fetch health profile
+      const profileResponse = await apiService.getHealthProfile()
+      if (profileResponse.data) {
+        setHealthProfile(profileResponse.data.profile || profileResponse.data)
       }
+
+      // Calculate stats from store data
+      const activeReminders = reminders.filter(r => !r.isCompleted).length
+      const lastAppointment = appointments
+        .filter(a => a.status === 'completed')
+        .sort((a, b) => new Date(b.appointmentDate) - new Date(a.appointmentDate))[0]
+
+      setStats({
+        symptomsLogged: symptoms.length,
+        appointmentsBooked: appointments.length,
+        remindersActive: activeReminders,
+        lastScreening: lastAppointment?.appointmentDate || null
+      })
+      
     } catch (error) {
-      console.error('Failed to fetch profile:', error)
-      setError('Failed to load profile. Please try again.')
-      // Use mock user if API fails
-      const userData = getMockUser()
-      setUser(userData)
-      setEditForm(userData)
+      console.error('Failed to fetch profile data:', error)
     } finally {
       setLoading(false)
     }
   }
 
-  const handleSave = async () => {
-    try {
-      setSaving(true)
-      setError(null)
-      
-      await apiService.updateProfile(editForm)
-      setUser(editForm)
-      setStoreUser(editForm)
-      setEditing(false)
-    } catch (error) {
-      console.error('Failed to update profile:', error)
-      setError('Failed to update profile. Please try again.')
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const handleCancel = () => {
-    setEditForm(user)
-    setEditing(false)
-    setError(null)
-  }
-
-  const handleNotificationChange = (key, value) => {
-    const newNotifications = { ...notifications, [key]: value }
-    setNotifications(newNotifications)
-    localStorage.setItem('notificationPreferences', JSON.stringify(newNotifications))
-  }
-
   const handleLogout = async () => {
+    if (!confirm('Are you sure you want to sign out?')) return
+
     try {
       await apiService.logout()
     } catch (error) {
       console.error('Logout error:', error)
+    } finally {
+      logout()
+      router.push('/auth/login')
     }
-    
-    // Clear local storage
-    localStorage.removeItem('auth_token')
-    localStorage.removeItem('notificationPreferences')
-    localStorage.removeItem('savedEvents')
-    
-    // Redirect to home
-    router.push('/')
   }
 
-  const getSavedEventsCount = () => {
-    const savedEvents = JSON.parse(localStorage.getItem('savedEvents') || '[]')
-    return savedEvents.length
+  const calculateAge = (dateOfBirth) => {
+    if (!dateOfBirth) return null
+    const today = new Date()
+    const birthDate = new Date(dateOfBirth)
+    let age = today.getFullYear() - birthDate.getFullYear()
+    const monthDiff = today.getMonth() - birthDate.getMonth()
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--
+    }
+    
+    return age
+  }
+
+  const getRiskLevelColor = (level) => {
+    switch (level?.toLowerCase()) {
+      case 'low':
+        return 'bg-green-100 text-green-800'
+      case 'moderate':
+        return 'bg-yellow-100 text-yellow-800'
+      case 'high':
+        return 'bg-red-100 text-red-800'
+      default:
+        return 'bg-gray-100 text-gray-800'
+    }
+  }
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Not set'
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    })
   }
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
           <LoadingSpinner size="large" />
-          <p className="mt-4 text-gray-600">Loading profile...</p>
-        </div>
       </div>
     )
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Page Header */}
-      <div className="bg-white border-b">
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <User className="h-6 w-6 text-pink-600" />
-              <h1 className="text-xl font-semibold text-gray-900">Profile</h1>
+      {/* Header */}
+      <div className="bg-gradient-to-r from-pink-500 to-purple-600 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex items-center space-x-6">
+            <div className="w-20 h-20 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+              <User className="h-10 w-10 text-white" />
             </div>
-
-            {!editing && (
-              <button
-                onClick={() => setEditing(true)}
-                className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg"
-              >
-                <Edit2 className="h-4 w-4" />
-                Edit Profile
-              </button>
-            )}
+            <div>
+              <h1 className="text-2xl font-bold">{user?.name || 'User'}</h1>
+              <p className="text-pink-100">{user?.email}</p>
+              {healthProfile?.dateOfBirth && (
+                <p className="text-pink-100 text-sm">
+                  Age: {calculateAge(healthProfile.dateOfBirth)} years
+                </p>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
-      <main className="max-w-4xl mx-auto px-4 py-8">
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-            {error}
-          </div>
-        )}
-
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Profile Information */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Personal Information */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-semibold text-gray-900">Personal Information</h2>
-                {editing && (
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={handleCancel}
-                      disabled={saving}
-                      className="px-3 py-1 text-gray-600 hover:text-gray-900 disabled:opacity-50"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={handleSave}
-                      disabled={saving}
-                      className="flex items-center gap-1 px-3 py-1 bg-pink-600 text-white rounded hover:bg-pink-700 disabled:opacity-50"
-                    >
-                      {saving ? <LoadingSpinner size="small" /> : <Save className="h-4 w-4" />}
-                      Save
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Name */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
-                  {editing ? (
-                    <input
-                      type="text"
-                      value={editForm.name || ''}
-                      onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                    />
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-gray-400" />
-                      <span className="text-gray-900">{user?.name || 'Not provided'}</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Email */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                  {editing ? (
-                    <input
-                      type="email"
-                      value={editForm.email || ''}
-                      onChange={(e) => setEditForm(prev => ({ ...prev, email: e.target.value }))}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                    />
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-gray-400" />
-                      <span className="text-gray-900">{user?.email || 'Not provided'}</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Phone */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-                  {editing ? (
-                    <input
-                      type="tel"
-                      value={editForm.phone || ''}
-                      onChange={(e) => setEditForm(prev => ({ ...prev, phone: e.target.value }))}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                    />
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4 text-gray-400" />
-                      <span className="text-gray-900">{user?.phone || 'Not provided'}</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Location */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
-                  {editing ? (
-                    <input
-                      type="text"
-                      value={editForm.location || ''}
-                      onChange={(e) => setEditForm(prev => ({ ...prev, location: e.target.value }))}
-                      placeholder="City, Region"
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                    />
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-gray-400" />
-                      <span className="text-gray-900">{user?.location || 'Not provided'}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Notification Settings */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-6">Notification Settings</h2>
+          {/* Left Column - Stats & Quick Actions */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* Health Stats */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Health Overview</h2>
               
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Bell className="h-5 w-5 text-gray-400" />
-                    <div>
-                      <div className="font-medium text-gray-900">New Events</div>
-                      <div className="text-sm text-gray-600">Get notified when new screening events are added</div>
-                    </div>
+                  <div className="flex items-center space-x-3">
+                    <Activity className="h-5 w-5 text-pink-600" />
+                    <span className="text-gray-700">Symptoms Logged</span>
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={notifications.newEvents}
-                      onChange={(e) => handleNotificationChange('newEvents', e.target.checked)}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-600"></div>
-                  </label>
+                  <span className="font-semibold text-gray-900">{stats.symptomsLogged}</span>
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Calendar className="h-5 w-5 text-gray-400" />
-                    <div>
-                      <div className="font-medium text-gray-900">Event Reminders</div>
-                      <div className="text-sm text-gray-600">Get reminded about upcoming events you&apos;ve saved</div>
-                    </div>
+                  <div className="flex items-center space-x-3">
+                    <Calendar className="h-5 w-5 text-blue-600" />
+                    <span className="text-gray-700">Appointments</span>
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={notifications.eventReminders}
-                      onChange={(e) => handleNotificationChange('eventReminders', e.target.checked)}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-600"></div>
-                  </label>
+                  <span className="font-semibold text-gray-900">{stats.appointmentsBooked}</span>
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Heart className="h-5 w-5 text-gray-400" />
-                    <div>
-                      <div className="font-medium text-gray-900">Health Tips</div>
-                      <div className="text-sm text-gray-600">Receive weekly breast health awareness tips</div>
-                    </div>
+                  <div className="flex items-center space-x-3">
+                    <Bell className="h-5 w-5 text-yellow-600" />
+                    <span className="text-gray-700">Active Reminders</span>
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={notifications.healthTips}
-                      onChange={(e) => handleNotificationChange('healthTips', e.target.checked)}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-600"></div>
-                  </label>
-                </div>
-              </div>
-            </div>
+                  <span className="font-semibold text-gray-900">{stats.remindersActive}</span>
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Quick Stats */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Stats</h3>
-              <div className="space-y-3">
+                <div className="pt-2 border-t border-gray-200">
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Saved Events</span>
-                  <span className="font-semibold text-pink-600">{getSavedEventsCount()}</span>
+                    <span className="text-sm text-gray-600">Last Screening</span>
+                    <span className="text-sm font-medium text-gray-900">
+                      {formatDate(stats.lastScreening)}
+                    </span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Member Since</span>
-                  <span className="font-semibold text-gray-900">
-                    {user?.createdAt ? new Date(user.createdAt).getFullYear() : '2024'}
-                  </span>
                 </div>
               </div>
             </div>
 
             {/* Quick Actions */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
+              
               <div className="space-y-3">
+                <button
+                  onClick={() => router.push('/symptoms/log')}
+                  className="w-full flex items-center justify-between p-3 text-left hover:bg-gray-50 rounded-lg transition-colors"
+                >
+                  <div className="flex items-center space-x-3">
+                    <Activity className="h-5 w-5 text-pink-600" />
+                    <span className="text-gray-700">Log Symptom</span>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-gray-400" />
+                </button>
+                
                 <button
                   onClick={() => router.push('/events')}
-                  className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+                  className="w-full flex items-center justify-between p-3 text-left hover:bg-gray-50 rounded-lg transition-colors"
                 >
-                  <div className="font-medium text-gray-900">Browse Events</div>
-                  <div className="text-sm text-gray-600">Find screening events near you</div>
+                  <div className="flex items-center space-x-3">
+                    <Calendar className="h-5 w-5 text-blue-600" />
+                    <span className="text-gray-700">Book Screening</span>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-gray-400" />
                 </button>
                 
                 <button
-                  onClick={() => router.push('/map')}
-                  className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+                  onClick={() => router.push('/health/analytics')}
+                  className="w-full flex items-center justify-between p-3 text-left hover:bg-gray-50 rounded-lg transition-colors"
                 >
-                  <div className="font-medium text-gray-900">Find Nearby Centers</div>
-                  <div className="text-sm text-gray-600">Use map to locate screening centers</div>
-                </button>
-              </div>
-            </div>
-
-            {/* Account Actions */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Account</h3>
-              <div className="space-y-3">
-                <button className="w-full flex items-center gap-2 p-3 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors">
-                  <Shield className="h-4 w-4" />
-                  Privacy Settings
-                </button>
-                
-                <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center gap-2 p-3 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
-                >
-                  <LogOut className="h-4 w-4" />
-                  Sign Out
+                  <div className="flex items-center space-x-3">
+                    <TrendingUp className="h-5 w-5 text-green-600" />
+                    <span className="text-gray-700">View Analytics</span>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-gray-400" />
                 </button>
               </div>
             </div>
           </div>
+
+          {/* Right Column - Profile Details */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Health Profile */}
+            {healthProfile && (
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-lg font-semibold text-gray-900">Health Profile</h2>
+                  <button
+                    onClick={() => router.push('/profile/health/edit')}
+                    className="flex items-center space-x-2 text-pink-600 hover:text-pink-500 transition-colors"
+                  >
+                    <Edit3 className="h-4 w-4" />
+                    <span>Edit</span>
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Basic Information */}
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-900 mb-3">Basic Information</h3>
+                    <div className="space-y-2">
+                      <div>
+                        <span className="text-sm text-gray-500">Date of Birth:</span>
+                        <p className="text-sm font-medium text-gray-900">
+                          {formatDate(healthProfile.dateOfBirth)}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-sm text-gray-500">Gender:</span>
+                        <p className="text-sm font-medium text-gray-900 capitalize">
+                          {healthProfile.gender || 'Not specified'}
+                        </p>
+                      </div>
+                      {healthProfile.lastScreeningDate && (
+                        <div>
+                          <span className="text-sm text-gray-500">Last Screening:</span>
+                          <p className="text-sm font-medium text-gray-900">
+                            {formatDate(healthProfile.lastScreeningDate)}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Family History */}
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-900 mb-3">Family History</h3>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm text-gray-500">Breast Cancer:</span>
+                        <span className={`text-sm font-medium ${
+                          healthProfile.familyHistory?.breastCancer ? 'text-red-600' : 'text-green-600'
+                        }`}>
+                          {healthProfile.familyHistory?.breastCancer ? 'Yes' : 'No'}
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm text-gray-500">Ovarian Cancer:</span>
+                        <span className={`text-sm font-medium ${
+                          healthProfile.familyHistory?.ovarianCancer ? 'text-red-600' : 'text-green-600'
+                        }`}>
+                          {healthProfile.familyHistory?.ovarianCancer ? 'Yes' : 'No'}
+                        </span>
+                      </div>
+                      {healthProfile.familyHistory?.other && (
+                        <div>
+                          <span className="text-sm text-gray-500">Other Conditions:</span>
+                          <p className="text-sm font-medium text-gray-900">
+                            {healthProfile.familyHistory.other}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Risk Factors */}
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-900 mb-3">Lifestyle Factors</h3>
+                    <div className="space-y-2">
+                      <div>
+                        <span className="text-sm text-gray-500">Exercise:</span>
+                        <p className="text-sm font-medium text-gray-900 capitalize">
+                          {healthProfile.riskFactors?.exerciseFrequency || 'Not specified'}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-sm text-gray-500">Smoking:</span>
+                        <p className="text-sm font-medium text-gray-900 capitalize">
+                          {healthProfile.riskFactors?.smokingStatus || 'Not specified'}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-sm text-gray-500">Alcohol:</span>
+                        <p className="text-sm font-medium text-gray-900 capitalize">
+                          {healthProfile.riskFactors?.alcoholConsumption || 'Not specified'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Emergency Contact */}
+                  {healthProfile.emergencyContact?.name && (
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-900 mb-3">Emergency Contact</h3>
+                      <div className="space-y-2">
+                        <div>
+                          <span className="text-sm text-gray-500">Name:</span>
+                          <p className="text-sm font-medium text-gray-900">
+                            {healthProfile.emergencyContact.name}
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-sm text-gray-500">Relationship:</span>
+                          <p className="text-sm font-medium text-gray-900 capitalize">
+                            {healthProfile.emergencyContact.relationship}
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-sm text-gray-500">Phone:</span>
+                          <p className="text-sm font-medium text-gray-900">
+                            {healthProfile.emergencyContact.phone}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Preferences & Settings */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-6">Preferences & Settings</h2>
+              
+              <div className="space-y-4">
+                <button
+                  onClick={() => router.push('/profile/preferences')}
+                  className="w-full flex items-center justify-between p-3 text-left hover:bg-gray-50 rounded-lg transition-colors"
+                >
+                  <div className="flex items-center space-x-3">
+                    <Settings className="h-5 w-5 text-gray-600" />
+                    <div>
+                      <p className="font-medium text-gray-900">Notification Preferences</p>
+                      <p className="text-sm text-gray-500">Manage how you receive reminders</p>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-gray-400" />
+                </button>
+
+                <button
+                  onClick={() => router.push('/profile/privacy')}
+                  className="w-full flex items-center justify-between p-3 text-left hover:bg-gray-50 rounded-lg transition-colors"
+                >
+                  <div className="flex items-center space-x-3">
+                    <Shield className="h-5 w-5 text-gray-600" />
+                    <div>
+                      <p className="font-medium text-gray-900">Privacy Settings</p>
+                      <p className="text-sm text-gray-500">Control your data sharing preferences</p>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-gray-400" />
+                </button>
+
+                <button
+                  onClick={() => router.push('/profile/account')}
+                  className="w-full flex items-center justify-between p-3 text-left hover:bg-gray-50 rounded-lg transition-colors"
+                >
+                  <div className="flex items-center space-x-3">
+                    <User className="h-5 w-5 text-gray-600" />
+                    <div>
+                      <p className="font-medium text-gray-900">Account Settings</p>
+                      <p className="text-sm text-gray-500">Update your personal information</p>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-gray-400" />
+                </button>
+              </div>
+            </div>
+
+            {/* Support & Help */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-6">Support & Help</h2>
+              
+              <div className="space-y-4">
+                <button
+                  onClick={() => router.push('/help')}
+                  className="w-full flex items-center justify-between p-3 text-left hover:bg-gray-50 rounded-lg transition-colors"
+                >
+                  <div className="flex items-center space-x-3">
+                    <AlertTriangle className="h-5 w-5 text-gray-600" />
+                    <div>
+                      <p className="font-medium text-gray-900">Help Center</p>
+                      <p className="text-sm text-gray-500">FAQs and user guides</p>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-gray-400" />
+                </button>
+                
+                <button
+                  onClick={() => router.push('/contact')}
+                  className="w-full flex items-center justify-between p-3 text-left hover:bg-gray-50 rounded-lg transition-colors"
+                >
+                  <div className="flex items-center space-x-3">
+                    <Mail className="h-5 w-5 text-gray-600" />
+                    <div>
+                      <p className="font-medium text-gray-900">Contact Support</p>
+                      <p className="text-sm text-gray-500">Get help from our team</p>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-gray-400" />
+                </button>
+              </div>
+            </div>
+
+            {/* Logout */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center justify-center space-x-3 p-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              >
+                <LogOut className="h-5 w-5" />
+                <span className="font-medium">Sign Out</span>
+              </button>
+            </div>
+          </div>
         </div>
-      </main>
+      </div>
     </div>
   )
-}
-
-// Mock user data for development/fallback
-function getMockUser() {
-  return {
-    id: '1',
-    name: 'Jane Doe',
-    email: 'jane.doe@example.com',
-    phone: '+233 24 123 4567',
-    location: 'Accra, Greater Accra',
-    createdAt: '2024-01-15T00:00:00Z'
-  }
 }

@@ -1,32 +1,27 @@
-import { Lato } from "next/font/google";
+import { Jost } from "next/font/google";
 import "./globals.css";
-import Header from "../components/Header";
-import BottomNavigation from "../components/BottomNavigation";
+import ClientLayout from "../components/ClientLayout";
 
-const lato = Lato({
-  variable: "--font-lato",
+const jost = Jost({
+  variable: "--font-jost",
   subsets: ["latin"],
-  weight: ["300", "400", "700", "900"],
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
 });
 
 export const metadata = {
-  title: "Breast Health Awareness App",
-  description: "Find breast cancer screening events and centers near you. Early detection saves lives.",
+  title: "PinkyTrust - Women's Health Companion",
+  description: "Your personalized women's health companion for breast cancer prevention, early detection, and overall wellness management.",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body
-        className={`${lato.variable} antialiased bg-gray-50 min-h-screen font-lato`}
+        className={`${jost.variable} antialiased bg-gray-50 min-h-screen font-jost`}
       >
-        <Header />
-        <main className="pt-0">
+        <ClientLayout>
           {children}
-        </main>
-        <BottomNavigation />
-        <div className="pb-16 md:pb-0"> {/* Add padding for mobile bottom nav */}
-        </div>
+        </ClientLayout>
       </body>
     </html>
   );

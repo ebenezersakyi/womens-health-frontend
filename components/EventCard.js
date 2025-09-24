@@ -1,6 +1,7 @@
 'use client'
 
 import { MapPin, Calendar, Clock, ExternalLink } from 'lucide-react'
+import { AverageRating } from './StarRating'
 
 export default function EventCard({ event, onClick }) {
   const formatDate = (dateString) => {
@@ -124,18 +125,34 @@ export default function EventCard({ event, onClick }) {
           )}
         </div>
 
-        <div className="flex items-center justify-between">
-          {event.distance && (
-            <div className="inline-block bg-pink-100 text-pink-800 text-xs px-2 py-1 rounded-full">
-              {event.distance.toFixed(1)} km away
+        {/* Rating and Distance/Participants */}
+        <div className="space-y-2">
+          {/* Average Rating */}
+          {event.reviewStats && event.reviewStats.averageRating > 0 && (
+            <div className="flex items-center justify-between">
+              <AverageRating 
+                averageRating={event.reviewStats.averageRating}
+                totalReviews={event.reviewStats.totalReviews}
+                size="small"
+                showCount={true}
+              />
             </div>
           )}
           
-          {event.maxParticipants && (
-            <div className="text-xs text-gray-500">
-              {event.registeredParticipants || 0}/{event.maxParticipants} participants
-            </div>
-          )}
+          {/* Distance and Participants */}
+          <div className="flex items-center justify-between">
+            {event.distance && (
+              <div className="inline-block bg-pink-100 text-pink-800 text-xs px-2 py-1 rounded-full">
+                {event.distance.toFixed(1)} km away
+              </div>
+            )}
+            
+            {event.maxParticipants && (
+              <div className="text-xs text-gray-500">
+                {event.registeredParticipants || 0}/{event.maxParticipants} participants
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

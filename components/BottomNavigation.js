@@ -2,13 +2,15 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { Home, Map, Calendar, User, Menu, X } from 'lucide-react'
+import { Home, Map, Calendar, User, Menu, X, Activity, Bell, BookOpen, LogIn } from 'lucide-react'
+import { useStore } from '../lib/store'
 
 export default function BottomNavigation() {
   const [isVisible, setIsVisible] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
   const router = useRouter()
   const pathname = usePathname()
+  const { isAuthenticated } = useStore()
 
   useEffect(() => {
     const controlNavbar = () => {
@@ -30,12 +32,23 @@ export default function BottomNavigation() {
     }
   }, [lastScrollY])
 
-  const navItems = [
+  const authenticatedNavItems = [
     { path: '/', icon: Home, label: 'Home' },
-    { path: '/map', icon: Map, label: 'Map' },
-    { path: '/events', icon: Calendar, label: 'Events' },
+    { path: '/symptoms', icon: Activity, label: 'Symptoms' },
+    { path: '/appointments', icon: Calendar, label: 'Appointments' },
+    { path: '/notifications', icon: Bell, label: 'Reminders' },
     { path: '/profile', icon: User, label: 'Profile' }
   ]
+
+  const publicNavItems = [
+    { path: '/', icon: Home, label: 'Home' },
+    { path: '/events', icon: Calendar, label: 'Events' },
+    { path: '/health/tips', icon: BookOpen, label: 'Health Tips' },
+    { path: '/self-exam-guide', icon: Activity, label: 'Self-Exam' },
+    { path: '/auth/login', icon: LogIn, label: 'Sign In' }
+  ]
+
+  const navItems = isAuthenticated ? authenticatedNavItems : publicNavItems
 
   const isActive = (path) => {
     if (path === '/' && pathname === '/') return true
@@ -47,7 +60,7 @@ export default function BottomNavigation() {
     <nav className={`fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 transition-transform duration-300 md:hidden ${
       isVisible ? 'translate-y-0' : 'translate-y-full'
     }`}>
-      <div className="grid grid-cols-4">
+      <div className="grid grid-cols-5">
         {navItems.map((item) => {
           const Icon = item.icon
           const active = isActive(item.path)

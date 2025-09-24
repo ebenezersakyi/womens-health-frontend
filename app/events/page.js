@@ -502,59 +502,62 @@ function EventsPageContent() {
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+      <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200/50 sticky top-0 z-50 shadow-lg shadow-gray-200/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-3">
+          <div className="flex items-center justify-between h-20">
+            <div className="flex items-center space-x-4">
               <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-pink-600 rounded-lg flex items-center justify-center">
-                  <Calendar className="h-5 w-5 text-white" />
+                <div className="w-12 h-12 bg-gradient-to-r from-pink-600 to-rose-600 rounded-xl flex items-center justify-center shadow-lg shadow-pink-500/25">
+                  <Calendar className="h-6 w-6 text-white" />
                 </div>
               </div>
               <div>
-                <h1 className="text-xl font-semibold text-gray-900">Health Screening Events</h1>
-                <p className="text-sm text-gray-500">Find screening events in your area</p>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent">
+                  Health Screening Events
+                </h1>
+                <p className="text-gray-600 font-medium">🏥 Find screening events in your area</p>
               </div>
             </div>
 
             {/* View Toggle */}
-            <div className="flex items-center space-x-3">
-              <div className="flex bg-gray-100 rounded-lg p-0.5">
+            <div className="flex items-center space-x-4">
+              <div className="flex bg-gray-100/50 rounded-xl p-1">
                 <button
                   onClick={() => setViewMode('list')}
-                  className={`flex items-center px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                  className={`flex items-center px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 ${
                     viewMode === 'list' 
-                      ? 'bg-white shadow-sm text-gray-900' 
-                      : 'text-gray-600 hover:text-gray-900'
+                      ? 'bg-white text-pink-600 shadow-md border border-pink-100/50' 
+                      : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'
                   }`}
                 >
-                  <List className="h-4 w-4 mr-1.5" />
-                  List
+                  <List className="h-4 w-4 mr-2" />
+                  <span className="hidden sm:inline">List</span>
                 </button>
                 <button
                   onClick={() => setViewMode('map')}
-                  className={`flex items-center px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                  className={`flex items-center px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 ${
                     viewMode === 'map' 
-                      ? 'bg-white shadow-sm text-gray-900' 
-                      : 'text-gray-600 hover:text-gray-900'
+                      ? 'bg-white text-pink-600 shadow-md border border-pink-100/50' 
+                      : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'
                   }`}
                 >
-                  <MapPin className="h-4 w-4 mr-1.5" />
-                  Map
+                  <MapPin className="h-4 w-4 mr-2" />
+                  <span className="hidden sm:inline">Map</span>
                 </button>
               </div>
               
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className={`p-2 rounded-lg transition-colors ${
+                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center gap-2 ${
                   showFilters 
-                    ? 'bg-pink-50 text-pink-600' 
-                    : 'text-gray-600 hover:bg-gray-100'
+                    ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg shadow-pink-500/25' 
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/50 border border-gray-200/50'
                 }`}
               >
-                <Filter className="h-5 w-5" />
+                <Filter className="h-4 w-4" />
+                <span className="hidden sm:inline">Filters</span>
               </button>
             </div>
           </div>
@@ -562,28 +565,30 @@ function EventsPageContent() {
       </div>
 
       {/* Search Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
             {/* Event Search */}
             <div className="lg:col-span-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Search Events
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                🔍 Search Events
               </label>
               <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <div className="absolute left-3 top-3 p-1 bg-pink-100/50 rounded-lg">
+                  <Search className="h-4 w-4 text-pink-600" />
+                </div>
                 <input
                   type="text"
                   placeholder="e.g. breast cancer screening"
                   value={eventTitleSearch}
                   onChange={(e) => setEventTitleSearch(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent text-sm"
+                  className="w-full pl-12 pr-12 py-3 border border-gray-200/50 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 text-sm bg-white/80 backdrop-blur-sm shadow-sm transition-all duration-200 hover:shadow-md"
                 />
                 {eventTitleSearch && (
                   <button
                     onClick={() => setEventTitleSearch('')}
-                    className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-3 p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -593,11 +598,13 @@ function EventsPageContent() {
 
             {/* Location Search */}
             <div className="lg:col-span-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Location
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                📍 Location
               </label>
               <div className="relative">
-                <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <div className="absolute left-3 top-3 p-1 bg-green-100/50 rounded-lg">
+                  <MapPin className="h-4 w-4 text-green-600" />
+                </div>
                 <input
                   ref={inputRef}
                   type="text"
@@ -605,12 +612,12 @@ function EventsPageContent() {
                   value={locationValue}
                   onChange={(e) => setLocationValue(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent text-sm"
+                  className="w-full pl-12 pr-12 py-3 border border-gray-200/50 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 text-sm bg-white/80 backdrop-blur-sm shadow-sm transition-all duration-200 hover:shadow-md"
                 />
                 {locationValue && (
                   <button
                     onClick={() => setLocationValue('')}
-                    className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-3 p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -620,16 +627,18 @@ function EventsPageContent() {
 
             {/* Date Picker */}
             <div className="lg:col-span-3" ref={datePickerRef}>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Date
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                📅 Date
               </label>
               <div className="relative">
                 <button
                   onClick={() => setShowDatePicker(!showDatePicker)}
-                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-left bg-white hover:bg-gray-50 transition-colors flex items-center justify-between text-sm"
+                  className="w-full px-4 py-3 border border-gray-200/50 rounded-xl text-left bg-white/80 backdrop-blur-sm hover:bg-white shadow-sm hover:shadow-md transition-all duration-200 flex items-center justify-between text-sm"
                 >
-                  <span className="truncate">{formatDateRange()}</span>
-                  <Calendar className="h-4 w-4 text-gray-400 flex-shrink-0 ml-2" />
+                  <span className="truncate font-medium">{formatDateRange()}</span>
+                  <div className="p-1 bg-blue-100/50 rounded-lg">
+                    <Calendar className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                  </div>
                 </button>
 
                 {showDatePicker && (
@@ -714,12 +723,13 @@ function EventsPageContent() {
 
             {/* Search Button */}
             <div className="lg:col-span-1">
-              <label className="block text-sm font-medium text-transparent mb-2">Search</label>
+              <label className="block text-sm font-semibold text-transparent mb-3">Search</label>
               <button
                 onClick={handleSearch}
-                className="w-full px-4 py-2.5 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors text-sm font-medium"
+                className="w-full px-6 py-3 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white rounded-xl transition-all duration-200 text-sm font-semibold shadow-lg shadow-pink-500/25 hover:shadow-pink-500/40 transform hover:scale-[1.02] flex items-center justify-center gap-2"
               >
-                Search
+                <Search className="h-4 w-4" />
+                <span className="hidden sm:inline">Search</span>
               </button>
             </div>
           </div>
@@ -727,15 +737,20 @@ function EventsPageContent() {
 
         {/* Error Message */}
         {error && (
-          <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center space-x-3 text-red-700">
-            <AlertCircle className="h-5 w-5 flex-shrink-0" />
-            <span>{error}</span>
+          <div className="mt-6 p-6 bg-gradient-to-r from-red-50 to-pink-50 border border-red-200/50 rounded-2xl flex items-start gap-4 text-red-700">
+            <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg shadow-red-500/25 flex-shrink-0">
+              <AlertCircle className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h3 className="font-bold text-red-900 mb-1">Oops! Something went wrong</h3>
+              <p className="text-red-800">{error}</p>
+            </div>
           </div>
         )}
 
         {/* Filters */}
         {showFilters && (
-          <div className="mt-4 bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          <div className="mt-6 bg-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
             <FilterBar
               filters={filters}
               onFilterChange={setFilters}
@@ -749,7 +764,7 @@ function EventsPageContent() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
         {/* Map View */}
         {viewMode === 'map' && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden" 
+          <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden" 
                style={{ height: 'calc(100vh - 400px)', minHeight: '500px' }}>
             <GoogleMapComponent
               userLocation={userLocation}
@@ -761,23 +776,23 @@ function EventsPageContent() {
             
             {/* Loading indicator for map */}
             {isLoadingEvents && (
-              <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-md border border-gray-200 z-10">
-                <div className="flex items-center space-x-2 text-sm">
+              <div className="absolute top-6 right-6 bg-white/95 backdrop-blur-md rounded-xl px-4 py-3 shadow-lg border border-white/20 z-10">
+                <div className="flex items-center space-x-3 text-sm">
                   <LoadingSpinner size="small" />
-                  <span className="text-gray-700">Loading events...</span>
+                  <span className="text-gray-700 font-medium">Loading events...</span>
                 </div>
               </div>
             )}
             
             {/* Polygon Search Indicator */}
             {isPolygonSearch && !isLoadingEvents && (
-              <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm rounded-lg px-4 py-2 shadow-md border border-gray-200 z-10">
+              <div className="absolute top-6 left-6 bg-white/95 backdrop-blur-md rounded-xl px-5 py-3 shadow-lg border border-white/20 z-10">
                 <div className="flex items-center space-x-3 text-sm">
                   <div className="w-2 h-2 bg-pink-500 rounded-full animate-pulse"></div>
-                  <span className="text-gray-700 font-medium">Showing events in visible area</span>
+                  <span className="text-gray-700 font-semibold">Showing events in visible area</span>
                   <button
                     onClick={fetchEvents}
-                    className="text-pink-600 hover:text-pink-700 font-medium transition-colors"
+                    className="text-pink-600 hover:text-pink-700 font-semibold transition-colors hover:bg-pink-50 px-2 py-1 rounded-lg"
                   >
                     Reset
                   </button>
@@ -792,10 +807,13 @@ function EventsPageContent() {
           <>
             {/* Loading State for List View */}
             {isLoadingEvents && (
-              <div className="flex items-center justify-center py-16">
+              <div className="flex items-center justify-center py-20">
                 <div className="text-center">
-                  <LoadingSpinner size="large" />
-                  <p className="mt-4 text-gray-600">Loading events...</p>
+                  <div className="w-16 h-16 bg-gradient-to-r from-pink-100 to-rose-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                    <LoadingSpinner size="large" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Finding Events</h3>
+                  <p className="text-gray-600">🔍 Searching for health screening events in your area...</p>
                 </div>
               </div>
             )}
@@ -804,15 +822,15 @@ function EventsPageContent() {
             {!isLoadingEvents && (
               <>
                 {filteredEvents.length === 0 ? (
-                  <div className="text-center py-16">
-                    <div className="bg-white rounded-lg shadow-sm p-12 border border-gray-200">
-                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Calendar className="h-8 w-8 text-gray-400" />
+                  <div className="text-center py-20">
+                    <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-12">
+                      <div className="w-20 h-20 bg-gradient-to-r from-gray-100 to-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                        <Calendar className="h-10 w-10 text-gray-400" />
                       </div>
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">
-                        {(eventTitleSearch || locationValue) ? 'No matching events found' : 'No events found'}
+                      <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                        {(eventTitleSearch || locationValue) ? '🔍 No matching events found' : '📅 No events found'}
                       </h3>
-                      <p className="text-gray-500 mb-6 max-w-sm mx-auto">
+                      <p className="text-gray-600 mb-8 max-w-md mx-auto text-lg leading-relaxed">
                         {(eventTitleSearch || locationValue)
                           ? 'Try adjusting your search terms or date filters to find more events.'
                           : 'Try adjusting your filters or check back later for new screening events.'
@@ -821,22 +839,22 @@ function EventsPageContent() {
                       {(eventTitleSearch || locationValue || filters.region !== 'all' || filters.dateRange !== 'all' || hasDateFilter) && (
                         <button
                           onClick={clearSearch}
-                          className="bg-pink-600 text-white px-6 py-2 rounded-lg hover:bg-pink-700 transition-colors font-medium"
+                          className="bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white px-8 py-4 rounded-xl transition-all duration-200 font-semibold shadow-lg shadow-pink-500/25 hover:shadow-pink-500/40 transform hover:scale-[1.02]"
                         >
-                          Clear filters
+                          🔄 Clear filters
                         </button>
                       )}
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-6">
+                  <div className="space-y-8">
                     {/* Results Summary */}
-                    <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+                    <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-gray-900 font-medium">
+                          <p className="text-gray-900 font-semibold text-lg">
                             {(eventTitleSearch || locationValue) && (
-                              `Results for ${eventTitleSearch ? `"${eventTitleSearch}"` : ''}${eventTitleSearch && locationValue ? ' in ' : ''}${locationValue ? `"${locationValue}"` : ''} • `
+                              `🎯 Results for ${eventTitleSearch ? `"${eventTitleSearch}"` : ''}${eventTitleSearch && locationValue ? ' in ' : ''}${locationValue ? `"${locationValue}"` : ''} • `
                             )}
                             <span className="text-pink-600">{filteredEvents.length}</span> event{filteredEvents.length !== 1 ? 's' : ''} found
                           </p>

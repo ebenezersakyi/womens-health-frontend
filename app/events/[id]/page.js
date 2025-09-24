@@ -15,17 +15,31 @@ import {
   Phone,
   Mail,
   AlertCircle,
+  Star,
+  MessageSquare,
+  Edit3,
 } from "lucide-react";
 import { apiService } from "../../../lib/api";
+import { useStore } from "../../../lib/store";
 import LoadingSpinner from "../../../components/LoadingSpinner";
+import ReviewForm from "../../../components/ReviewForm";
+import ReviewList from "../../../components/ReviewList";
+import { AverageRating } from "../../../components/StarRating";
 
 export default function EventDetailPage() {
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isSaved, setIsSaved] = useState(false);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [editingReview, setEditingReview] = useState(null);
+  const [userReview, setUserReview] = useState(null);
+  const [reviewRefreshTrigger, setReviewRefreshTrigger] = useState(0);
+  const [activeTab, setActiveTab] = useState("details");
+
   const router = useRouter();
   const params = useParams();
+  const { user } = useStore();
 
   const fetchEvent = useCallback(async () => {
     try {
@@ -74,6 +88,67 @@ export default function EventDetailPage() {
       minute: "2-digit",
     });
   };
+
+  // Check if user can review this event
+  const canUserReview = () => {
+    if (!user || !event) return false;
+
+    // Event must be in the past to be reviewed
+    const eventDate = new Date(event.date);
+    const now = new Date();
+    return eventDate < now;
+  };
+
+  // Check if user has already reviewed this event
+  const checkUserReview = async () => {
+    if (!user || !event) return;
+
+    try {
+      const response = await apiService.getMyReviews({ eventId: event._id });
+      if (response.data.success && response.data.data.reviews.length > 0) {
+        setUserReview(response.data.data.reviews[0]);
+      }
+    } catch (error) {
+      console.error("Failed to check user review:", error);
+    }
+  };
+
+  // Handle review form success
+  const handleReviewSuccess = (review) => {
+    setShowReviewForm(false);
+    setEditingReview(null);
+    setUserReview(review);
+    setReviewRefreshTrigger((prev) => prev + 1);
+  };
+
+  // Handle edit review
+  const handleEditReview = (review) => {
+    setEditingReview(review);
+    setShowReviewForm(true);
+  };
+
+  // Handle delete review
+  const handleDeleteReview = async (review) => {
+    if (!confirm("Are you sure you want to delete this review?")) return;
+
+    try {
+      const response = await apiService.deleteReview(review._id);
+      if (response.data.success) {
+        setUserReview(null);
+        setReviewRefreshTrigger((prev) => prev + 1);
+      }
+    } catch (error) {
+      console.error("Failed to delete review:", error);
+      alert("Failed to delete review. Please try again.");
+    }
+  };
+
+  // Check for user's existing review when event loads
+  useEffect(() => {
+    if (event && user) {
+      checkUserReview();
+    }
+  }, [event, user]);
 
   const openInGoogleMaps = () => {
     console.log("Opening Google Maps for event:", event);
@@ -207,23 +282,23 @@ export default function EventDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
       {/* Page Header */}
-      <div className="bg-white border-b">
-        <div className="max-w-4xl mx-auto px-4 py-4">
+      <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200/50 sticky top-0 z-40">
+        <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <button
               onClick={() => router.back()}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100/50 px-3 py-2 rounded-lg transition-all duration-200"
             >
               <ArrowLeft className="h-5 w-5" />
-              Back
+              <span className="font-medium">Back</span>
             </button>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <button
                 onClick={shareEvent}
-                className="p-2 text-gray-600 hover:text-gray-900 rounded-lg hover:bg-gray-100"
+                className="p-3 text-gray-400 hover:text-gray-600 hover:bg-gray-100/50 rounded-xl transition-all duration-200"
                 title="Share event"
               >
                 <Share2 className="h-5 w-5" />
@@ -231,10 +306,10 @@ export default function EventDetailPage() {
 
               <button
                 onClick={toggleSaveEvent}
-                className={`p-2 rounded-lg ${
+                className={`p-3 rounded-xl transition-all duration-200 ${
                   isSaved
-                    ? "text-pink-600 bg-pink-50"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                    ? "bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg shadow-pink-500/25"
+                    : "text-gray-400 hover:text-gray-600 hover:bg-gray-100/50"
                 }`}
                 title={isSaved ? "Remove from saved" : "Save event"}
               >
@@ -247,35 +322,37 @@ export default function EventDetailPage() {
         </div>
       </div>
 
-      <main className="max-w-4xl mx-auto px-4 py-8">
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+      <main className="max-w-6xl mx-auto px-4 py-8">
+        <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
           {/* Event Image */}
           {event.image?.url && (
-            <div className="relative h-64 md:h-80 overflow-hidden">
+            <div className="relative h-72 md:h-96 overflow-hidden">
               <img
                 src={event.image.url}
                 alt={event.title}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
                 onError={(e) => {
-                  e.target.style.display = 'none'
+                  e.target.style.display = "none";
                 }}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-              
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-r from-pink-500/10 to-purple-500/10" />
+
               {/* Image Caption */}
-              <div className="absolute bottom-4 left-6 right-6">
-                <div className="bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2">
-                  <p className="text-xs text-gray-600">
-                    Event Image • Uploaded {new Date(event.image.uploadedAt).toLocaleDateString()}
+              {/* <div className="absolute bottom-6 left-6 right-6">
+                <div className="bg-white/90 backdrop-blur-md rounded-xl px-4 py-3 border border-white/20 shadow-lg">
+                  <p className="text-sm text-gray-700 font-medium">
+                    📸 Event Image • Uploaded{" "}
+                    {new Date(event.image.uploadedAt).toLocaleDateString()}
                   </p>
                 </div>
-              </div>
+              </div> */}
             </div>
           )}
 
           {/* Event Header */}
-          <div className="p-8 border-b border-gray-200">
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">
+          <div className="p-8 lg:p-10 border-b border-gray-200/50">
+            <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent mb-6 leading-tight">
               {event.title}
             </h1>
 
@@ -290,18 +367,18 @@ export default function EventDetailPage() {
                 </details>
               </div>
             )} */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Date & Time */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="bg-pink-100 p-2 rounded-lg">
-                    <Calendar className="h-5 w-5 text-pink-600" />
+              <div className="space-y-6">
+                <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-pink-50 to-rose-50 rounded-2xl border border-pink-100/50">
+                  <div className="bg-gradient-to-r from-pink-500 to-rose-500 p-3 rounded-xl shadow-lg shadow-pink-500/25">
+                    <Calendar className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <div className="font-medium text-gray-900">
+                    <div className="font-semibold text-gray-900 text-lg">
                       {formatDate(event.date)}
                     </div>
-                    <div className="text-sm text-gray-600">
+                    <div className="text-pink-600 font-medium">
                       {formatTime(event.date)}
                     </div>
                   </div>
@@ -309,17 +386,17 @@ export default function EventDetailPage() {
 
                 {/* Organizer */}
                 {event.organizerId && (
-                  <div className="flex items-center gap-3">
-                    <div className="bg-blue-100 p-2 rounded-lg">
-                      <User className="h-5 w-5 text-blue-600" />
+                  <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-100/50">
+                    <div className="bg-gradient-to-r from-blue-500 to-indigo-500 p-3 rounded-xl shadow-lg shadow-blue-500/25">
+                      <User className="h-6 w-6 text-white" />
                     </div>
                     <div>
-                      <div className="text-sm text-gray-600">Organized by</div>
-                      <div className="font-medium text-gray-900">
+                      <div className="text-sm text-blue-600 font-medium">Organized by</div>
+                      <div className="font-semibold text-gray-900">
                         {event.organizerId.name}
                       </div>
                       {event.organizerId.email && (
-                        <div className="text-sm text-gray-500">
+                        <div className="text-sm text-gray-600">
                           {event.organizerId.email}
                         </div>
                       )}
@@ -329,22 +406,22 @@ export default function EventDetailPage() {
               </div>
 
               {/* Location */}
-              <div className="flex items-start gap-3">
-                <div className="bg-green-100 p-2 rounded-lg">
-                  <MapPin className="h-5 w-5 text-green-600" />
+              <div className="flex items-start gap-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl border border-green-100/50">
+                <div className="bg-gradient-to-r from-green-500 to-emerald-500 p-3 rounded-xl shadow-lg shadow-green-500/25">
+                  <MapPin className="h-6 w-6 text-white" />
                 </div>
                 <div className="flex-1">
-                  <div className="font-medium text-gray-900 mb-2">
+                  <div className="font-semibold text-gray-900 mb-2 text-lg">
                     {event.location?.address || "Address not specified"}
                   </div>
                   {event.location?.region && (
-                    <div className="text-sm text-gray-600 mb-2">
-                      {event.location.region} Region
+                    <div className="text-sm text-green-600 font-medium mb-3">
+                      📍 {event.location.region} Region
                     </div>
                   )}
                   <button
                     onClick={openInGoogleMaps}
-                    className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700"
+                    className="inline-flex items-center gap-2 text-sm bg-white/80 hover:bg-white text-green-700 px-4 py-2 rounded-lg transition-all duration-200 border border-green-200/50 hover:shadow-md"
                   >
                     <ExternalLink className="h-4 w-4" />
                     Get Directions
@@ -354,173 +431,337 @@ export default function EventDetailPage() {
             </div>
           </div>
 
-          {/* Event Details */}
-          <div className="p-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              Event Details
-            </h2>
+          {/* Tab Navigation */}
+          <div className="border-b border-gray-200/30">
+            <div className="px-8 lg:px-10">
+              <nav className="flex space-x-1 bg-gray-100/50 rounded-xl p-1 max-w-md">
+                <button
+                  onClick={() => setActiveTab("details")}
+                  className={`py-3 px-6 rounded-lg font-medium text-sm transition-all duration-200 flex-1 text-center ${
+                    activeTab === "details"
+                      ? "bg-white text-pink-600 shadow-sm border border-pink-100/50"
+                      : "text-gray-600 hover:text-gray-800 hover:bg-white/50"
+                  }`}
+                >
+                  Event Details
+                </button>
+                <button
+                  onClick={() => setActiveTab("reviews")}
+                  className={`py-3 px-6 rounded-lg font-medium text-sm transition-all duration-200 flex-1 flex items-center justify-center gap-2 ${
+                    activeTab === "reviews"
+                      ? "bg-white text-pink-600 shadow-sm border border-pink-100/50"
+                      : "text-gray-600 hover:text-gray-800 hover:bg-white/50"
+                  }`}
+                >
+                  <MessageSquare className="h-4 w-4" />
+                  Reviews
+                </button>
+              </nav>
+            </div>
+          </div>
 
-            {event.description ? (
-              <div className="prose prose-gray max-w-none mb-6">
-                <p className="text-gray-700 leading-relaxed whitespace-pre-line">
-                  {event.description}
-                </p>
-              </div>
-            ) : (
-              <p className="text-gray-700 mb-6">
-                Join us for this important breast cancer screening event. Early
-                detection saves lives.
-              </p>
-            )}
-
-            {/* Contact Information */}
-            {(event.contactInfo?.phone || event.contactInfo?.email) && (
-              <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                <h3 className="font-medium text-gray-900 mb-3">
-                  Contact Information
-                </h3>
-                <div className="space-y-2">
-                  {event.contactInfo?.phone && (
-                    <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4 text-gray-500" />
-                      <a
-                        href={`tel:${event.contactInfo.phone}`}
-                        className="text-blue-600 hover:text-blue-700"
-                      >
-                        {event.contactInfo.phone}
-                      </a>
-                    </div>
-                  )}
-                  {event.contactInfo?.email && (
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-gray-500" />
-                      <a
-                        href={`mailto:${event.contactInfo.email}`}
-                        className="text-blue-600 hover:text-blue-700"
-                      >
-                        {event.contactInfo.email}
-                      </a>
-                    </div>
-                  )}
+          {/* Tab Content */}
+          {activeTab === "details" && (
+            <div className="p-8 lg:p-10">
+              <h2 className="text-2xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+                <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-rose-500 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-sm">📋</span>
                 </div>
-              </div>
-            )}
+                Event Details
+              </h2>
 
-            {/* Event Status and Participants */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-              {/* Event Status */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h4 className="font-medium text-gray-900 mb-2">Event Status</h4>
-                <div className="flex items-center gap-2">
-                  <div
-                    className={`w-2 h-2 rounded-full ${
-                      event.status === "active"
-                        ? "bg-green-500"
-                        : event.status === "completed"
-                        ? "bg-blue-500"
-                        : event.status === "cancelled"
-                        ? "bg-red-500"
-                        : "bg-gray-500"
-                    }`}
-                  ></div>
-                  <span
-                    className={`text-sm font-medium capitalize ${
-                      event.status === "active"
-                        ? "text-green-700"
-                        : event.status === "completed"
-                        ? "text-blue-700"
-                        : event.status === "cancelled"
-                        ? "text-red-700"
-                        : "text-gray-700"
-                    }`}
-                  >
-                    {event.status || "Active"}
-                  </span>
+              {event.description ? (
+                <div className="bg-gradient-to-r from-gray-50 to-white rounded-2xl p-6 mb-8 border border-gray-100/50">
+                  <p className="text-gray-700 leading-relaxed whitespace-pre-line text-lg">
+                    {event.description}
+                  </p>
                 </div>
-              </div>
+              ) : (
+                <div className="bg-gradient-to-r from-pink-50 to-rose-50 rounded-2xl p-6 mb-8 border border-pink-100/50">
+                  <p className="text-gray-700 text-lg leading-relaxed">
+                    🎯 Join us for this important breast cancer screening event.
+                    Early detection saves lives.
+                  </p>
+                </div>
+              )}
 
-              {/* Participation Info */}
-              {event.maxParticipants && (
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h4 className="font-medium text-gray-900 mb-2">
-                    Participation
-                  </h4>
-                  <div className="text-sm text-gray-600">
-                    <div>{event.registeredParticipants || 0} registered</div>
-                    <div>Max capacity: {event.maxParticipants}</div>
-                    {event.maxParticipants > 0 && (
-                      <div className="mt-2">
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div
-                            className="bg-pink-600 h-2 rounded-full"
-                            style={{
-                              width: `${Math.min(
-                                ((event.registeredParticipants || 0) /
-                                  event.maxParticipants) *
-                                  100,
-                                100
-                              )}%`,
-                            }}
-                          ></div>
-                        </div>
-                        <div className="text-xs text-gray-500 mt-1">
-                          {Math.round(
-                            ((event.registeredParticipants || 0) /
-                              event.maxParticipants) *
-                              100
-                          )}
-                          % full
-                        </div>
+              {/* Contact Information */}
+              {(event.contactInfo?.phone || event.contactInfo?.email) && (
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 mb-8 border border-blue-100/50">
+                  <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-3">
+                    <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center">
+                      <span className="text-white text-sm">📞</span>
+                    </div>
+                    Contact Information
+                  </h3>
+                  <div className="space-y-3">
+                    {event.contactInfo?.phone && (
+                      <div className="flex items-center gap-3 p-3 bg-white/70 rounded-xl">
+                        <Phone className="h-5 w-5 text-blue-600" />
+                        <a
+                          href={`tel:${event.contactInfo.phone}`}
+                          className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                        >
+                          {event.contactInfo.phone}
+                        </a>
+                      </div>
+                    )}
+                    {event.contactInfo?.email && (
+                      <div className="flex items-center gap-3 p-3 bg-white/70 rounded-xl">
+                        <Mail className="h-5 w-5 text-blue-600" />
+                        <a
+                          href={`mailto:${event.contactInfo.email}`}
+                          className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                        >
+                          {event.contactInfo.email}
+                        </a>
                       </div>
                     )}
                   </div>
                 </div>
               )}
-            </div>
 
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4">
-              {/* Register Button - Only show if event is active and has space */}
-              {event.status === "active" &&
-                (!event.maxParticipants ||
-                  (event.registeredParticipants || 0) <
-                    event.maxParticipants) && (
+              {/* Event Status and Participants */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+                {/* Event Status */}
+                <div className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-2xl p-6 border border-gray-100/50">
+                  <h4 className="font-bold text-gray-900 mb-4 flex items-center gap-3">
+                    <div className="w-8 h-8 bg-gradient-to-r from-gray-500 to-slate-500 rounded-lg flex items-center justify-center">
+                      <span className="text-white text-sm">📊</span>
+                    </div>
+                    Event Status
+                  </h4>
+                  <div className="flex items-center gap-3 p-3 bg-white/70 rounded-xl">
+                    <div
+                      className={`w-3 h-3 rounded-full shadow-lg ${
+                        event.status === "active"
+                          ? "bg-green-500 shadow-green-500/25"
+                          : event.status === "completed"
+                          ? "bg-blue-500 shadow-blue-500/25"
+                          : event.status === "cancelled"
+                          ? "bg-red-500 shadow-red-500/25"
+                          : "bg-gray-500 shadow-gray-500/25"
+                      }`}
+                    ></div>
+                    <span
+                      className={`font-semibold capitalize ${
+                        event.status === "active"
+                          ? "text-green-700"
+                          : event.status === "completed"
+                          ? "text-blue-700"
+                          : event.status === "cancelled"
+                          ? "text-red-700"
+                          : "text-gray-700"
+                      }`}
+                    >
+                      {event.status || "Active"}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Participation Info */}
+                {event.maxParticipants && (
+                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-100/50">
+                    <h4 className="font-bold text-gray-900 mb-4 flex items-center gap-3">
+                      <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                        <span className="text-white text-sm">👥</span>
+                      </div>
+                      Participation
+                    </h4>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center text-sm font-medium">
+                        <span className="text-gray-600">Registered:</span>
+                        <span className="text-purple-600">{event.registeredParticipants || 0}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-sm font-medium">
+                        <span className="text-gray-600">Max capacity:</span>
+                        <span className="text-purple-600">{event.maxParticipants}</span>
+                      </div>
+                      {event.maxParticipants > 0 && (
+                        <div className="mt-4">
+                          <div className="w-full bg-gray-200/50 rounded-full h-3 overflow-hidden">
+                            <div
+                              className="bg-gradient-to-r from-purple-500 to-pink-500 h-3 rounded-full transition-all duration-500 shadow-sm"
+                              style={{
+                                width: `${Math.min(
+                                  ((event.registeredParticipants || 0) /
+                                    event.maxParticipants) *
+                                    100,
+                                  100
+                                )}%`,
+                              }}
+                            ></div>
+                          </div>
+                          <div className="text-xs text-purple-600 font-medium mt-2 text-center">
+                            {Math.round(
+                              ((event.registeredParticipants || 0) /
+                                event.maxParticipants) *
+                                100
+                            )}% full
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4">
+                {/* Register Button - Only show if event is active and has space */}
+                {event.status === "active" &&
+                  (!event.maxParticipants ||
+                    (event.registeredParticipants || 0) <
+                      event.maxParticipants) && (
+                    <button
+                      className="flex-1 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white px-8 py-4 rounded-2xl transition-all duration-200 inline-flex items-center justify-center gap-3 font-semibold shadow-lg shadow-pink-500/25 hover:shadow-pink-500/40 transform hover:scale-[1.02]"
+                      onClick={() => {
+                        // TODO: Implement registration logic
+                        alert("Registration feature coming soon!");
+                      }}
+                    >
+                      <User className="h-5 w-5" />
+                      Register for Event
+                    </button>
+                  )}
+
+                <button
+                  onClick={openInGoogleMaps}
+                  className={`${
+                    event.status === "active" &&
+                    (!event.maxParticipants ||
+                      (event.registeredParticipants || 0) <
+                        event.maxParticipants)
+                      ? "flex-1 bg-gradient-to-r from-gray-600 to-slate-600 hover:from-gray-700 hover:to-slate-700 shadow-gray-500/25 hover:shadow-gray-500/40"
+                      : "flex-1 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 shadow-pink-500/25 hover:shadow-pink-500/40"
+                  } text-white px-8 py-4 rounded-2xl transition-all duration-200 inline-flex items-center justify-center gap-3 font-semibold shadow-lg transform hover:scale-[1.02]`}
+                >
+                  <MapPin className="h-5 w-5" />
+                  Get Directions
+                </button>
+
+                <button
+                  onClick={addToCalendar}
+                  className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-4 rounded-2xl transition-all duration-200 inline-flex items-center justify-center gap-3 font-semibold shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transform hover:scale-[1.02]"
+                >
+                  <Calendar className="h-5 w-5" />
+                  Add to Calendar
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Reviews Tab */}
+          {activeTab === "reviews" && (
+            <div className="p-8 lg:p-10">
+              {/* Review Header with Write Review Button */}
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-8 gap-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-3 flex items-center gap-3">
+                    <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-rose-500 rounded-lg flex items-center justify-center">
+                      <MessageSquare className="h-4 w-4 text-white" />
+                    </div>
+                    Event Reviews
+                  </h2>
+                  <p className="text-gray-600 text-lg">
+                    💭 Share your experience and read what others have to say about
+                    this event.
+                  </p>
+                </div>
+
+                {/* Write Review Button */}
+                {user && canUserReview() && !userReview && (
                   <button
-                    className="flex-1 bg-pink-600 text-white px-6 py-3 rounded-lg hover:bg-pink-700 transition-colors inline-flex items-center justify-center gap-2 font-medium"
-                    onClick={() => {
-                      // TODO: Implement registration logic
-                      alert("Registration feature coming soon!");
-                    }}
+                    onClick={() => setShowReviewForm(true)}
+                    className="bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white px-6 py-3 rounded-xl transition-all duration-200 flex items-center gap-2 font-semibold shadow-lg shadow-pink-500/25 hover:shadow-pink-500/40 transform hover:scale-[1.02]"
                   >
-                    <User className="h-5 w-5" />
-                    Register for Event
+                    <Star className="h-5 w-5" />
+                    Write Review
                   </button>
                 )}
 
-              <button
-                onClick={openInGoogleMaps}
-                className={`${
-                  event.status === "active" &&
-                  (!event.maxParticipants ||
-                    (event.registeredParticipants || 0) < event.maxParticipants)
-                    ? "flex-1 bg-gray-600 hover:bg-gray-700"
-                    : "flex-1 bg-pink-600 hover:bg-pink-700"
-                } text-white px-6 py-3 rounded-lg transition-colors inline-flex items-center justify-center gap-2`}
-              >
-                <MapPin className="h-5 w-5" />
-                Get Directions
-              </button>
+                {/* Edit Review Button */}
+                {user && userReview && (
+                  <button
+                    onClick={() => handleEditReview(userReview)}
+                    className="bg-gradient-to-r from-gray-600 to-slate-600 hover:from-gray-700 hover:to-slate-700 text-white px-6 py-3 rounded-xl transition-all duration-200 flex items-center gap-2 font-semibold shadow-lg shadow-gray-500/25 hover:shadow-gray-500/40 transform hover:scale-[1.02]"
+                  >
+                    <Edit3 className="h-5 w-5" />
+                    Edit Review
+                  </button>
+                )}
+              </div>
 
-              <button
-                onClick={addToCalendar}
-                className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center justify-center gap-2"
-              >
-                <Calendar className="h-5 w-5" />
-                Add to Calendar
-              </button>
+              {/* Login Prompt for Non-Users */}
+              {!user && (
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200/50 rounded-2xl p-6 mb-8">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/25">
+                      <User className="h-6 w-6 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-bold text-blue-900 mb-2 text-lg">
+                        Want to write a review?
+                      </h3>
+                      <p className="text-blue-800 mb-4 leading-relaxed">
+                        Sign in to share your experience and help others make
+                        informed decisions about this event.
+                      </p>
+                      <button
+                        onClick={() => router.push("/auth/login")}
+                        className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-3 rounded-xl transition-all duration-200 font-semibold shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transform hover:scale-[1.02]"
+                      >
+                        Sign In to Review
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Review Guidelines for Past Events */}
+              {user && !canUserReview() && (
+                <div className="bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200/50 rounded-2xl p-6 mb-8">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 bg-gradient-to-r from-yellow-500 to-amber-500 rounded-xl flex items-center justify-center shadow-lg shadow-yellow-500/25">
+                      <AlertCircle className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-yellow-900 mb-2 text-lg">
+                        Reviews Not Available Yet
+                      </h3>
+                      <p className="text-yellow-800 leading-relaxed">
+                        Reviews can only be written for events that have already taken place.
+                        Check back after the event to share your experience!
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Reviews List */}
+              <ReviewList
+                eventId={params.id}
+                onEditReview={handleEditReview}
+                onDeleteReview={handleDeleteReview}
+                refreshTrigger={reviewRefreshTrigger}
+              />
             </div>
-          </div>
+          )}
         </div>
+
+        {/* Review Form Modal */}
+        {showReviewForm && (
+          <ReviewForm
+            eventId={params.id}
+            existingReview={editingReview}
+            onSuccess={handleReviewSuccess}
+            onCancel={() => {
+              setShowReviewForm(false);
+              setEditingReview(null);
+            }}
+            isOpen={showReviewForm}
+          />
+        )}
 
         {/* Event Metadata */}
         {(event.createdAt || event.updatedAt) && (

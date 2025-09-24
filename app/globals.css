@@ -152,7 +152,7 @@
   border: 1px solid #e5e7eb !important;
   border-radius: 0.75rem !important;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
-  font-family: var(--font-lato), 'Lato', sans-serif !important;
+  font-family: var(--font-jost), 'Jost', sans-serif !important;
 }
 
 .react-datepicker__header {
@@ -196,11 +196,11 @@
 
 /* Custom React Date Range Styles */
 .react-daterange-picker-wrapper {
-  font-family: var(--font-lato), 'Lato', sans-serif !important;
+  font-family: var(--font-jost), 'Jost', sans-serif !important;
 }
 
 .react-daterange-picker-wrapper-compact {
-  font-family: var(--font-lato), 'Lato', sans-serif !important;
+  font-family: var(--font-jost), 'Jost', sans-serif !important;
   font-size: 0.75rem !important;
 }
 
@@ -384,7 +384,7 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  --font-lato: var(--font-lato);
+  --font-jost: var(--font-jost);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -397,5 +397,5 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-lato), 'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-family: var(--font-jost), 'Jost', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
 }
