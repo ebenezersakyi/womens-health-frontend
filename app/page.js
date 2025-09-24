@@ -180,13 +180,13 @@ export default function Dashboard() {
       {/* Hero Section - Show for ALL users */}
       <HeroSection />
 
-      {isAuthenticated && (
+      {/* {isAuthenticated && (
         // Dashboard for authenticated users - seamless flow with hero
         <div className="relative bg-gradient-to-b from-transparent via-gray-50/50 to-gray-50">
           {/* Welcome Section - flows from hero */}
-          <div className="relative bg-gradient-to-b from-pink-50/30 via-white/80 to-white py-16 overflow-hidden">
+          {/* <div className="relative bg-gradient-to-b from-pink-50/30 via-white/80 to-white py-16 overflow-hidden">
             {/* Subtle background elements */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            {/* <div className="absolute inset-0 overflow-hidden pointer-events-none">
               <div className="absolute top-10 right-1/4 w-32 h-32 bg-pink-200/10 rounded-full blur-2xl"></div>
               <div className="absolute bottom-10 left-1/4 w-24 h-24 bg-purple-200/10 rounded-full blur-xl"></div>
             </div>
@@ -203,7 +203,7 @@ export default function Dashboard() {
               </div>
 
               {/* Health Status Overview Cards */}
-              <div className="grid md:grid-cols-3 gap-6 mb-12">
+              {/* <div className="grid md:grid-cols-3 gap-6 mb-12">
                 <div className="group bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50 p-6 hover:shadow-xl transition-all duration-300">
                   <div className="flex items-center justify-between mb-4">
                     <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
@@ -254,7 +254,7 @@ export default function Dashboard() {
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {/* Quick Actions */}
-            <div className="mb-12">
+            {/* <div className="mb-12">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">
                 Quick Actions
               </h2>
@@ -322,13 +322,13 @@ export default function Dashboard() {
             </div>
 
             {/* Main Content Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Left Column */}
-              <div className="lg:col-span-2 space-y-8">
+              {/* <div className="lg:col-span-2 space-y-8">
                 {/* Health Insights Section */}
-                <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50 p-8 overflow-hidden">
+                {/* <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50 p-8 overflow-hidden">
                   {/* Background decoration */}
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-pink-100/30 to-purple-100/20 rounded-full blur-2xl"></div>
+                  {/* <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-pink-100/30 to-purple-100/20 rounded-full blur-2xl"></div>
 
                   <div className="relative">
                     <div className="flex items-center justify-between mb-6">
@@ -408,9 +408,9 @@ export default function Dashboard() {
                 </div>
 
                 {/* Your Health Journey - More engaging approach */}
-                <div className="relative bg-gradient-to-br from-pink-50/50 via-white to-purple-50/30 rounded-3xl shadow-xl border border-gray-200/50 p-8 overflow-hidden">
+                {/* <div className="relative bg-gradient-to-br from-pink-50/50 via-white to-purple-50/30 rounded-3xl shadow-xl border border-gray-200/50 p-8 overflow-hidden">
                   {/* Background decoration */}
-                  <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-pink-100/30 to-purple-100/20 rounded-full blur-3xl"></div>
+                  {/* <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-pink-100/30 to-purple-100/20 rounded-full blur-3xl"></div>
                   <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-br from-blue-100/20 to-indigo-100/15 rounded-full blur-2xl"></div>
 
                   <div className="relative">
@@ -433,9 +433,9 @@ export default function Dashboard() {
                     </div>
 
                     {/* Journey Progress */}
-                    <div className="grid md:grid-cols-2 gap-8 mb-8">
+                    {/* <div className="grid md:grid-cols-2 gap-8 mb-8">
                       {/* Recent Activity */}
-                      <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50">
+                      {/* <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50">
                         <div className="flex items-center justify-between mb-4">
                           <h3 className="text-xl font-bold text-gray-900">
                             Recent Activity
@@ -494,7 +494,7 @@ export default function Dashboard() {
                       </div>
 
                       {/* Wellness Tips */}
-                      <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50">
+                      {/* <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50">
                         <h3 className="text-xl font-bold text-gray-900 mb-4">
                           Today&apos;s Wellness Tip
                         </h3>
@@ -525,7 +525,7 @@ export default function Dashboard() {
                     </div>
 
                     {/* Quick Health Actions */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {/* <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <button
                         onClick={() => router.push("/symptoms/log")}
                         className="group bg-white/70 backdrop-blur-sm rounded-2xl p-4 border border-gray-200/50 hover:shadow-lg transition-all duration-300 text-center"
@@ -578,9 +578,9 @@ export default function Dashboard() {
                 </div>
 
                 {/* Personalized Health Companion */}
-                <div className="relative bg-gradient-to-br from-purple-50/50 via-white to-blue-50/30 rounded-3xl shadow-xl border border-gray-200/50 p-8 overflow-hidden">
+                {/* <div className="relative bg-gradient-to-br from-purple-50/50 via-white to-blue-50/30 rounded-3xl shadow-xl border border-gray-200/50 p-8 overflow-hidden">
                   {/* Background decoration */}
-                  <div className="absolute top-0 left-0 w-40 h-40 bg-gradient-to-br from-purple-100/30 to-blue-100/20 rounded-full blur-3xl"></div>
+                  {/* <div className="absolute top-0 left-0 w-40 h-40 bg-gradient-to-br from-purple-100/30 to-blue-100/20 rounded-full blur-3xl"></div>
                   <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-br from-pink-100/20 to-rose-100/15 rounded-full blur-2xl"></div>
 
                   <div className="relative">
@@ -601,7 +601,7 @@ export default function Dashboard() {
 
                     <div className="grid md:grid-cols-2 gap-8">
                       {/* Health Image & Motivation */}
-                      <div className="relative">
+                      {/* <div className="relative">
                         <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50">
                           <div className="relative mb-6">
                             <img
@@ -627,7 +627,7 @@ export default function Dashboard() {
                       </div>
 
                       {/* Health Insights */}
-                      <div className="space-y-6">
+                      {/* <div className="space-y-6">
                         <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50">
                           <div className="flex items-center gap-3 mb-4">
                             <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
@@ -695,11 +695,11 @@ export default function Dashboard() {
               </div>
 
               {/* Right Column - Wellness Hub */}
-              <div className="space-y-8">
+              {/* <div className="space-y-8">
                 {/* Wellness Hub */}
-                <div className="relative bg-gradient-to-br from-green-50/50 via-white to-emerald-50/30 rounded-3xl shadow-xl border border-gray-200/50 p-6 overflow-hidden">
+                {/* <div className="relative bg-gradient-to-br from-green-50/50 via-white to-emerald-50/30 rounded-3xl shadow-xl border border-gray-200/50 p-6 overflow-hidden">
                   {/* Background decoration */}
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-100/30 to-emerald-100/20 rounded-full blur-2xl"></div>
+                  {/* <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-100/30 to-emerald-100/20 rounded-full blur-2xl"></div>
 
                   <div className="relative">
                     <div className="flex items-center gap-3 mb-6">
@@ -756,7 +756,7 @@ export default function Dashboard() {
                     )}
 
                     {/* Quick Health Tips */}
-                    <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-4 border border-gray-200/50">
+                    {/* <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-4 border border-gray-200/50">
                       <h3 className="font-bold text-gray-900 mb-3 text-sm">
                         💡 Quick Tip
                       </h3>
@@ -776,7 +776,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* Get Started section for non-authenticated users */}
-                {!isAuthenticated && (
+                {/* {!isAuthenticated && (
                   <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <div className="flex items-center justify-between mb-4">
                       <h2 className="text-lg font-semibold text-gray-900">
@@ -847,7 +847,7 @@ export default function Dashboard() {
                 )}
 
                 {/* Health Tips */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                {/* <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-lg font-semibold text-gray-900">
                       Health Tips
@@ -880,7 +880,7 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
-      )}
+      )} */}
 
       {!isAuthenticated && (
         // Landing page content for non-authenticated users
