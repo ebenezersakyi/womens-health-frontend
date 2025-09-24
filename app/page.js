@@ -882,18 +882,18 @@ export default function Dashboard() {
         </div>
       )} */}
 
-      {!isAuthenticated && (
+      {/* {!isAuthenticated && (
         // Landing page content for non-authenticated users
         <div className="relative bg-gradient-to-br from-gray-50 via-white to-pink-50/30 py-20 overflow-hidden">
           {/* Background decorative elements */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {/* <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <div className="absolute top-20 right-20 w-32 h-32 bg-pink-200/20 rounded-full blur-2xl"></div>
             <div className="absolute bottom-20 left-20 w-24 h-24 bg-purple-200/15 rounded-full blur-xl"></div>
           </div>
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             {/* Health Tips Section */}
-            <div className="text-center mb-16">
+            {/* <div className="text-center mb-16">
               <h2 className="text-4xl font-bold text-gray-900 mb-6">
                 Essential Health Tips
               </h2>
@@ -934,17 +934,17 @@ export default function Dashboard() {
                     className="group relative bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl border border-gray-200/60 p-8 hover:shadow-2xl hover:scale-105 transition-all duration-500 overflow-hidden"
                   >
                     {/* Animated background gradient */}
-                    <div
+                    {/* <div
                       className={`absolute inset-0 bg-gradient-to-br ${bgHover} opacity-0 group-hover:opacity-100 transition-all duration-500`}
                     ></div>
 
                     {/* Floating decorative elements */}
-                    <div className="absolute -top-2 -right-2 w-20 h-20 bg-gradient-to-br from-pink-200/20 to-purple-200/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    {/* <div className="absolute -top-2 -right-2 w-20 h-20 bg-gradient-to-br from-pink-200/20 to-purple-200/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                     <div className="absolute -bottom-4 -left-4 w-16 h-16 bg-gradient-to-br from-blue-200/15 to-indigo-200/10 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
 
                     <div className="relative z-10">
                       {/* Enhanced icon with number badge */}
-                      <div className="flex items-center justify-between mb-6">
+                      {/* <div className="flex items-center justify-between mb-6">
                         <div
                           className={`w-18 h-18 bg-gradient-to-r ${iconColor} rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-xl`}
                         >
@@ -979,7 +979,7 @@ export default function Dashboard() {
                       )}
 
                       {/* Progress indicator */}
-                      <div className="mt-6 w-full bg-gray-100 rounded-full h-1 overflow-hidden">
+                      {/* <div className="mt-6 w-full bg-gray-100 rounded-full h-1 overflow-hidden">
                         <div
                           className={`h-full bg-gradient-to-r ${iconColor} rounded-full transition-all duration-1000 group-hover:w-full`}
                           style={{ width: "30%" }}
@@ -992,7 +992,7 @@ export default function Dashboard() {
             </div>
 
             {/* Call to Action */}
-            <div className="text-center mt-16">
+            {/* <div className="text-center mt-16">
               <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50 p-8 max-w-2xl mx-auto">
                 <h3 className="text-2xl font-bold text-gray-900 mb-4">
                   Ready to Take Control of Your Health?
@@ -1013,7 +1013,7 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 }
