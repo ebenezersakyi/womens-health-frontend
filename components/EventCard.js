@@ -32,8 +32,9 @@ export default function EventCard({ event, onClick }) {
           <Image
             src={event.image.url}
             alt={event.title}
-            fill
-            className="object-cover"
+            width={400}
+            height={192}
+            className="w-full h-48 object-cover"
             onError={(e) => {
               e.target.style.display = 'none'
               e.target.parentElement.style.display = 'none'

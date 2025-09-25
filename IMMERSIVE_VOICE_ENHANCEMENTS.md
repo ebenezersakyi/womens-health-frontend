@@ -201,3 +201,4 @@ GOOGLE_AI_API_KEY=AIzaSyBB1NKAQPg8S8_pozh0f_fd64ct9_Xl0ME
 5. **Check TTS**: Long responses should now work with audio chunking
 
 The voice experience is now truly immersive with professional-grade animations and user experience patterns!
+

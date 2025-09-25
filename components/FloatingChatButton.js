@@ -63,11 +63,12 @@ const FloatingChatButton = () => {
             
             <button
               onClick={handleProfessionalChat}
-              className="w-14 h-14 bg-purple-500 hover:bg-purple-600 text-white rounded-full shadow-lg transition-all duration-200 flex items-center justify-center group relative"
+              disabled={true}
+              className="w-14 h-14 bg-gray-400 text-white rounded-full shadow-lg transition-all duration-200 flex items-center justify-center group relative cursor-not-allowed opacity-60"
             >
               <User className="w-6 h-6" />
               <div className="absolute right-full mr-3 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 whitespace-nowrap pointer-events-none">
-                Health Professional
+                Health Professional (Coming Soon)
                 <div className="absolute left-full top-1/2 transform -translate-y-1/2 w-0 h-0 border-l-4 border-r-0 border-t-4 border-b-4 border-transparent border-l-gray-900"></div>
               </div>
             </button>

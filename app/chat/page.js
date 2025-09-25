@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Bot, User, Heart, MessageCircle, Phone, Video, Calendar, ArrowLeft, Shield, Clock, Star, Languages, Volume2, Mic, Type, Zap } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
@@ -11,6 +11,7 @@ import ImmersiveVoiceAI from '../../components/ImmersiveVoiceAI';
 
 function ChatPageContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const initialMode = searchParams.get('mode') || null;
   
   const [messages, setMessages] = useState([
@@ -226,15 +227,21 @@ function ChatPageContent() {
   };
 
   const goBack = () => {
-    setShowModeSelection(true);
-    setMessages([
-      {
-        id: 1,
-        content: "Hi there! I'm Pinky Trust AI, your personal women's health companion. I'm here to help you with any questions about menstrual health, pregnancy, reproductive health, and more. How can I support you today? 💕",
-        sender: 'ai',
-        timestamp: new Date()
-      }
-    ]);
+    // If we came from a direct link with mode (like /chat?mode=ai), go back to home page
+    if (initialMode) {
+      router.push('/');
+    } else {
+      // Otherwise show mode selection
+      setShowModeSelection(true);
+      setMessages([
+        {
+          id: 1,
+          content: "Hi there! I'm Pinky Trust AI, your personal women's health companion. I'm here to help you with any questions about menstrual health, pregnancy, reproductive health, and more. How can I support you today? 💕",
+          sender: 'ai',
+          timestamp: new Date()
+        }
+      ]);
+    }
   };
 
   if (showModeSelection) {

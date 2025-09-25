@@ -149,3 +149,4 @@ Toggle clicked, current voiceMode: true
 6. Input area transitions to text interface
 
 The animations should now be much smoother with proper spring physics and the toggle should work reliably in both directions!
+

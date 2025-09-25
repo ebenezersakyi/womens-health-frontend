@@ -20,7 +20,6 @@ import {
 import { useJsApiLoader } from "@react-google-maps/api";
 import { useStore } from "../lib/store";
 import Logo from "./Logo";
-import { motion, AnimatePresence } from "framer-motion";
 
 // Google Places integration
 let autocomplete;
@@ -33,17 +32,6 @@ export default function HeroSection() {
   const [selectedPlace, setSelectedPlace] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const inputRef = useRef(null);
-  // Keep animation speed constant in px/sec regardless of viewport height
-  const [menuDistance, setMenuDistance] = useState(
-    typeof window !== "undefined" ? window.innerHeight : 0
-  );
-  const [menuDuration, setMenuDuration] = useState(() => {
-    if (typeof window !== "undefined") {
-      const speedPxPerSec = 1400; // target constant speed
-      return window.innerHeight / speedPxPerSec;
-    }
-    return 0.5;
-  });
 
   // Load Google Maps API with Places library
   const { isLoaded } = useJsApiLoader({
@@ -52,18 +40,6 @@ export default function HeroSection() {
     libraries: ["places"],
   });
 
-  // Recalculate distance and duration on resize so speed stays constant
-  useEffect(() => {
-    const recalc = () => {
-      const distance = window.innerHeight; // scroll full viewport height
-      setMenuDistance(distance);
-      const speedPxPerSec = 1400; // tweak to make it feel faster/slower
-      setMenuDuration(distance / speedPxPerSec);
-    };
-    recalc();
-    window.addEventListener("resize", recalc);
-    return () => window.removeEventListener("resize", recalc);
-  }, []);
 
   useEffect(() => {
     // Initialize Google Places Autocomplete when API is loaded
@@ -169,9 +145,9 @@ export default function HeroSection() {
           <Image
             src="/logo.jpeg"
             alt="PinkyTrust Logo"
-            width={48}
-            height={48}
-            className="w-12 h-12 rounded-lg shadow-lg cursor-pointer"
+            width={68}
+            height={68}
+            className="w-16 h-16 rounded-lg shadow-lg cursor-pointer"
             onClick={() => router.push("/")}
           />
         </div>
@@ -190,27 +166,38 @@ export default function HeroSection() {
         </button>
       </div>
 
-      {/* Menu Overlay - constant linear speed across full viewport */}
-      <motion.div
-        className="fixed inset-0 z-30 bg-gradient-to-br from-pink-900 via-pink-800 to-purple-900"
-        initial={false}
-        animate={{ y: isMenuOpen ? 0 : -menuDistance }}
-        transition={{ duration: menuDuration, ease: "easeOut" }}
-        style={{ pointerEvents: isMenuOpen ? "auto" : "none" }}
+      {/* Menu Overlay with enhanced drawer animation */}
+      <div
+        className={`fixed inset-0 z-30 ${
+          isMenuOpen ? 'menu-slide-in' : 'menu-slide-out'
+        }`}
+        style={{ 
+          pointerEvents: isMenuOpen ? "auto" : "none",
+          background: 'linear-gradient(135deg, rgba(157, 23, 77, 0.95) 0%, rgba(147, 51, 234, 0.95) 50%, rgba(79, 70, 229, 0.95) 100%)',
+          backdropFilter: 'blur(20px)',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+          visibility: isMenuOpen ? 'visible' : 'hidden',
+        }}
       >
-        {/* Close Button */}
-        <div className="absolute top-6 right-6">
+        {/* Close Button with enhanced animation */}
+        <div className={`absolute top-6 right-6 z-50 ${isMenuOpen ? 'close-button-in' : 'close-button-out'}`}>
           <button
-            onClick={() => setIsMenuOpen(false)}
-            className="flex items-center justify-center w-12 h-12 rounded-xl hover:bg-white/10 transition-all duration-300"
+            onClick={() => {
+              console.log("Close button clicked");
+              setIsMenuOpen(false);
+            }}
+            className="flex items-center justify-center w-12 h-12 rounded-xl hover:bg-white/10 hover:scale-110 transition-all duration-300 backdrop-blur-sm border border-white/20 cursor-pointer"
+            style={{ pointerEvents: 'auto' }}
           >
             <X className="w-6 h-6 text-white" />
           </button>
         </div>
 
-        {/* Menu Content - keep static to avoid perceived speed changes */}
+        {/* Menu Content with staggered animation */}
         <div 
-          className={`flex flex-col items-center justify-center h-full text-center px-8 transition-opacity duration-200 ${isMenuOpen ? 'opacity-100' : 'opacity-0'}`}
+          className={`flex flex-col items-center justify-center h-full text-center px-8 ${
+            isMenuOpen ? 'menu-content-in' : 'menu-content-out'
+          }`}
         >
           {/* Logo */}
           <div className="mb-12">
@@ -360,16 +347,22 @@ export default function HeroSection() {
               <h3 className="text-white font-semibold mb-4">Contact Us</h3>
               <div className="flex items-center justify-center gap-2 text-pink-200 mb-2">
                 <Phone className="w-4 h-4" />
-                <span className="text-sm">+233 (0)30 398 0408</span>
+                <span className="text-sm">+233 55 666 0355</span>
               </div>
-              <div className="flex items-center justify-center gap-2 text-pink-200">
+              <div className="flex items-center justify-center gap-2 text-pink-200 mb-4">
                 <Shield className="w-4 h-4" />
-                <span className="text-sm">connect@pinkytrust.com</span>
+                <span className="text-sm">info@gi-kace.gov.gh</span>
+              </div>
+              
+              {/* Powered by GI-KACE */}
+              <div className="flex items-center justify-center gap-2 text-pink-200/80 text-xs">
+                <span>Powered by</span>
+                <span className="font-semibold text-white">GI-KACE</span>
               </div>
             </div>
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Content overlay */}
       <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-4 sm:px-6 lg:px-8 pt-20">
@@ -455,8 +448,124 @@ export default function HeroSection() {
               </>
             )}
           </div>
+          
+          {/* Powered by GI-KACE - Home page branding */}
+          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
+            <div className="flex items-center gap-2 text-white/70 text-sm">
+              <span>Powered by</span>
+              <span className="font-semibold text-white">GI-KACE</span>
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* Enhanced CSS Animations */}
+      <style jsx>{`
+        @keyframes menuSlideIn {
+          0% {
+            transform: translateY(-100%);
+            opacity: 0;
+            visibility: visible;
+          }
+          1% {
+            visibility: visible;
+          }
+          100% {
+            transform: translateY(0);
+            opacity: 1;
+            visibility: visible;
+          }
+        }
+
+        @keyframes menuSlideOut {
+          0% {
+            transform: translateY(0);
+            opacity: 1;
+            visibility: visible;
+          }
+          99% {
+            visibility: visible;
+          }
+          100% {
+            transform: translateY(-100%);
+            opacity: 0;
+            visibility: hidden;
+          }
+        }
+
+        @keyframes menuContentIn {
+          0% {
+            opacity: 0;
+            transform: translateY(30px) scale(0.95);
+          }
+          60% {
+            opacity: 0;
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+
+        @keyframes menuContentOut {
+          0% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+          100% {
+            opacity: 0;
+            transform: translateY(-20px) scale(0.98);
+          }
+        }
+
+        .menu-slide-in {
+          animation: menuSlideIn 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+
+        .menu-slide-out {
+          animation: menuSlideOut 0.4s cubic-bezier(0.55, 0.055, 0.675, 0.19) forwards;
+        }
+
+        .menu-content-in {
+          animation: menuContentIn 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.2s forwards;
+          opacity: 0;
+        }
+
+        .menu-content-out {
+          animation: menuContentOut 0.2s cubic-bezier(0.55, 0.055, 0.675, 0.19) forwards;
+        }
+
+        @keyframes closeButtonIn {
+          0% {
+            opacity: 0;
+            transform: scale(0.8) rotate(-180deg);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1) rotate(0deg);
+          }
+        }
+
+        @keyframes closeButtonOut {
+          0% {
+            opacity: 1;
+            transform: scale(1) rotate(0deg);
+          }
+          100% {
+            opacity: 0;
+            transform: scale(0.8) rotate(180deg);
+          }
+        }
+
+        .close-button-in {
+          animation: closeButtonIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.3s forwards;
+          opacity: 0;
+        }
+
+        .close-button-out {
+          animation: closeButtonOut 0.2s cubic-bezier(0.55, 0.055, 0.675, 0.19) forwards;
+        }
+      `}</style>
     </section>
   );
 }
