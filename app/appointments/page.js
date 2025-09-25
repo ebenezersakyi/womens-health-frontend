@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { 
   Calendar, 
@@ -29,15 +29,7 @@ export default function AppointmentsPage() {
   const router = useRouter()
   const { user, isAuthenticated } = useStore()
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/auth/login')
-      return
-    }
-    fetchAppointments()
-  }, [isAuthenticated, router])
-
-  const fetchAppointments = async () => {
+  const fetchAppointments = useCallback(async () => {
     try {
       setLoading(true)
       const params = {}
@@ -53,13 +45,21 @@ export default function AppointmentsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push('/auth/login')
+      return
+    }
+    fetchAppointments()
+  }, [isAuthenticated, router, fetchAppointments])
 
   useEffect(() => {
     if (!loading) {
       fetchAppointments()
     }
-  }, [filter])
+  }, [filter, fetchAppointments, loading])
 
   const handleCancelAppointment = async (appointmentId) => {
     if (!confirm('Are you sure you want to cancel this appointment?')) return

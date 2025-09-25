@@ -6,6 +6,7 @@ import { useStore } from '../lib/store'
 import { apiService } from '../lib/api'
 import Header from './Header'
 import BottomNavigation from './BottomNavigation'
+import FloatingChatButton from './FloatingChatButton'
 
 export default function ClientLayout({ children }) {
   const pathname = usePathname()
@@ -13,7 +14,11 @@ export default function ClientLayout({ children }) {
 
   // Paths that don't need navigation
   const noNavPaths = ['/auth/login', '/auth/register', '/onboarding']
-  const shouldShowNav = !noNavPaths.some(path => pathname.startsWith(path))
+  // Also hide navigation on home page and chat page
+  const shouldShowNav = !noNavPaths.some(path => pathname.startsWith(path)) && pathname !== '/' && pathname !== '/chat'
+  
+  // Show floating chat button on most pages except auth, onboarding, and chat page itself
+  const shouldShowChatButton = !noNavPaths.some(path => pathname.startsWith(path)) && pathname !== '/chat'
 
   useEffect(() => {
     // Initialize auth state from localStorage on app start
@@ -66,6 +71,7 @@ export default function ClientLayout({ children }) {
         <div className="pb-16 md:pb-0"> {/* Add padding for mobile bottom nav */}
         </div>
       )}
+      {shouldShowChatButton && <FloatingChatButton />}
     </>
   )
 }
