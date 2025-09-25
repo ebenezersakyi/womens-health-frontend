@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import {
   Heart,
   Calendar,
@@ -165,9 +166,11 @@ export default function HeroSection() {
       <div className="absolute top-0 left-0 right-0 z-20 flex justify-between items-center p-6">
         {/* Logo */}
         <div className="flex items-center">
-          <img
+          <Image
             src="/logo.jpeg"
             alt="PinkyTrust Logo"
+            width={48}
+            height={48}
             className="w-12 h-12 rounded-lg shadow-lg cursor-pointer"
             onClick={() => router.push("/")}
           />
@@ -211,9 +214,11 @@ export default function HeroSection() {
         >
           {/* Logo */}
           <div className="mb-12">
-            <img
+            <Image
               src="/logo.jpeg"
               alt="PinkyTrust Logo"
+              width={96}
+              height={96}
               className="w-24 h-24 rounded-2xl shadow-2xl mx-auto mb-6"
             />
             <h2 className="text-3xl font-bold text-white mb-2">PinkyTrust</h2>
@@ -242,7 +247,7 @@ export default function HeroSection() {
                   }}
                   className="w-full flex items-center justify-center gap-3 bg-white/10 backdrop-blur-md border border-white/20 text-white px-8 py-4 rounded-2xl text-lg font-semibold hover:bg-white/20 transition-all duration-300"
                 >
-                  <img src="/icons/breast.ico" alt="Self Check" className="w-5 h-5 brightness-0 invert" />
+                  <Image src="/icons/breast.ico" alt="Self Check" width={20} height={20} className="w-5 h-5 brightness-0 invert" />
                   <span>Self Check Guide</span>
                 </button>
 
@@ -299,7 +304,7 @@ export default function HeroSection() {
                   }}
                   className="w-full flex items-center justify-center gap-3 bg-white/10 backdrop-blur-md border border-white/20 text-white px-8 py-4 rounded-2xl text-lg font-semibold hover:bg-white/20 transition-all duration-300"
                 >
-                  <img src="/icons/breast.ico" alt="Self Check" className="w-5 h-5 brightness-0 invert" />
+                  <Image src="/icons/breast.ico" alt="Self Check" width={20} height={20} className="w-5 h-5 brightness-0 invert" />
                   <span>Self Check Guide</span>
                 </button>
 
@@ -419,7 +424,7 @@ export default function HeroSection() {
                   className="group relative flex items-center justify-center gap-2 bg-gradient-to-r from-pink-600 to-pink-500 text-white px-8 py-4 rounded-2xl text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 overflow-hidden"
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-pink-700 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <img src="/icons/breast.ico" alt="Self Check" className="w-5 h-5 relative brightness-0 invert" />
+                  <Image src="/icons/breast.ico" alt="Self Check" width={20} height={20} className="w-5 h-5 relative brightness-0 invert" />
                   <span className="relative">Self Check</span>
                 </button>
                 <button
@@ -437,7 +442,7 @@ export default function HeroSection() {
                   className="group relative flex items-center justify-center gap-2 bg-gradient-to-r from-pink-600 to-pink-500 text-white px-8 py-4 rounded-2xl text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 overflow-hidden"
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-pink-700 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <img src="/icons/breast.ico" alt="Self Check" className="w-5 h-5 relative brightness-0 invert" />
+                  <Image src="/icons/breast.ico" alt="Self Check" width={20} height={20} className="w-5 h-5 relative brightness-0 invert" />
                   <span className="relative">Self Check</span>
                 </button>
                 <button

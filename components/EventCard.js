@@ -2,6 +2,7 @@
 
 import { MapPin, Calendar, Clock, ExternalLink } from 'lucide-react'
 import { AverageRating } from './StarRating'
+import Image from 'next/image'
 
 export default function EventCard({ event, onClick }) {
   const formatDate = (dateString) => {
@@ -28,10 +29,11 @@ export default function EventCard({ event, onClick }) {
       {/* Event Image */}
       {event.image?.url && (
         <div className="relative h-48 overflow-hidden">
-          <img
+          <Image
             src={event.image.url}
             alt={event.title}
-            className="w-full h-full object-cover"
+            fill
+            className="object-cover"
             onError={(e) => {
               e.target.style.display = 'none'
               e.target.parentElement.style.display = 'none'
